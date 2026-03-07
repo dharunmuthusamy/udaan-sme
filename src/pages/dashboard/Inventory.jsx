@@ -1,0 +1,155 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { productService } from '../../services/productService';
+import DataTable from '../../components/Dashboard/DataTable';
+import SearchBar from '../../components/Dashboard/SearchBar';
+import AddButton from '../../components/Dashboard/AddButton';
+
+export default function Inventory() {
+  const { businessData } = useAuth();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+
+  useEffect(() => {
+    if (businessData?.id) {
+      loadProducts();
+    }
+  }, [businessData]);
+
+  async function loadProducts() {
+    try {
+      setLoading(true);
+      const data = await productService.getAll(businessData.id);
+      setProducts(data);
+    } catch (err) {
+      console.error('[Inventory] Load error:', err);
+      setError(`Failed to load products: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      await productService.delete(id);
+      loadProducts();
+    }
+  };
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          p.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = ['All', ...new Set(products.map(p => p.category))];
+
+  const columns = [
+    { 
+      header: 'Product Name', 
+      accessor: 'name',
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-surface-900">{row.name}</span>
+          <span className="text-[10px] text-surface-400 font-mono tracking-tighter">SKU: {row.sku || 'N/A'}</span>
+        </div>
+      )
+    },
+    { header: 'Category', accessor: 'category' },
+    { 
+      header: 'Price', 
+      accessor: 'price',
+      render: (row) => <span className="font-bold text-surface-700">₹{row.price.toLocaleString()}</span>
+    },
+    { 
+      header: 'Stock', 
+      accessor: 'stockQuantity',
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <span className={`font-black ${row.stockQuantity <= 10 ? 'text-red-600' : 'text-surface-900'}`}>{row.stockQuantity}</span>
+          <span className="text-surface-300 text-[10px] font-bold">units</span>
+        </div>
+      )
+    },
+    { 
+      header: 'Status', 
+      render: (row) => (
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+          row.stockQuantity > 10 
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+            : 'bg-red-50 text-red-700 border-red-100 animate-pulse'
+        }`}>
+          {row.stockQuantity > 10 ? 'Normal' : 'Low Stock'}
+        </span>
+      )
+    },
+    {
+      header: 'Actions',
+      align: 'right',
+      render: (row) => (
+        <div className="flex justify-end gap-2">
+          <button 
+            onClick={() => handleDelete(row.id)}
+            className="p-2 text-surface-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  return (
+    <div className="max-w-6xl mx-auto anime-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+          <h1 className="text-3xl font-black text-surface-900 tracking-tight">Inventory</h1>
+          <p className="text-surface-500 font-medium">Track stock levels and manage your catalog.</p>
+        </div>
+        <AddButton to="/dashboard/inventory/add" label="Add Product" />
+      </div>
+
+      <div className="bg-white rounded-[2rem] border border-surface-200 shadow-sm overflow-hidden min-h-[500px]">
+        <div className="p-6 border-b border-surface-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <SearchBar value={searchTerm} onChange={setSearchTerm} placeholder="Search products..." />
+          
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
+            <span className="text-[10px] font-black uppercase text-surface-300 mr-2">Filter:</span>
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`flex-shrink-0 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  categoryFilter === cat ? 'bg-primary-600 text-white shadow-md' : 'bg-surface-50 text-surface-500 hover:bg-surface-100'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <DataTable 
+          columns={columns} 
+          data={filteredProducts} 
+          loading={loading} 
+          emptyMessage="No products match your criteria. Add your first item to get started."
+        />
+
+        {error && (
+          <div className="p-8 text-center">
+            <div className="inline-block px-6 py-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold">
+              {error}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

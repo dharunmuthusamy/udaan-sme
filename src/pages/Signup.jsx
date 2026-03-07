@@ -1,0 +1,184 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export default function Signup() {
+  const { signup } = useAuth();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({ fullName: '', businessName: '', email: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  function handleChange(e) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+
+    // Validation
+    if (!form.fullName.trim()) return setError('Full name is required.');
+    if (!form.businessName.trim()) return setError('Business name is required.');
+    if (!form.email.trim()) return setError('Email is required.');
+    if (form.password.length < 6) return setError('Password must be at least 6 characters.');
+
+    setLoading(true);
+    try {
+      const { user, businessId, isNewBusiness } = await signup(form.email, form.password, form.fullName, form.businessName);
+
+      // 4. Generate Demo Data for new business
+      if (isNewBusiness) {
+        try {
+          const { demoDataService } = await import('../services/demoDataService');
+          await demoDataService.generateDemoContent(businessId);
+        } catch (demoError) {
+          console.warn('Demo data generation failed, skipping...', demoError);
+        }
+      }
+
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('[Signup]', err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('An account with this email already exists.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else {
+        setError(err.message || 'Something went wrong. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-surface-50 px-4 pt-16 pb-12">
+      <div className="w-full max-w-md">
+        <div className="rounded-2xl border border-surface-200 bg-white p-8 shadow-sm">
+          {/* Logo */}
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 text-white font-bold shadow-md">
+              U
+            </span>
+            <span className="text-xl font-bold text-surface-900 tracking-tight">
+              UDAAN<span className="text-primary-600">-SME</span>
+            </span>
+          </div>
+
+          <h1 className="text-xl font-bold text-surface-900 text-center">Create your account</h1>
+          <p className="mt-1 text-sm text-surface-700/60 text-center">
+            Start digitizing your business in minutes
+          </p>
+
+          {/* Error */}
+          {error && (
+            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {/* Form */}
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="fullName" className="block text-sm font-medium text-surface-700 mb-1.5">
+                Full Name
+              </label>
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                value={form.fullName}
+                onChange={handleChange}
+                placeholder="Ramesh Kumar"
+                className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3.5 py-2.5 text-sm text-surface-900 placeholder-surface-700/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-400 transition"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="businessName" className="block text-sm font-medium text-surface-700 mb-1.5">
+                Business Name
+              </label>
+              <input
+                id="businessName"
+                name="businessName"
+                type="text"
+                value={form.businessName}
+                onChange={handleChange}
+                placeholder="Kumar Enterprises"
+                className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3.5 py-2.5 text-sm text-surface-900 placeholder-surface-700/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-400 transition"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-surface-700 mb-1.5">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@company.com"
+                className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3.5 py-2.5 text-sm text-surface-900 placeholder-surface-700/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-400 transition"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-surface-700 mb-1.5">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3.5 py-2.5 text-sm text-surface-900 placeholder-surface-700/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-400 transition"
+              />
+              <p className="mt-1 text-xs text-surface-700/40">Minimum 6 characters</p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-gradient-to-r from-primary-600 to-accent-500 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Creating account…
+                </span>
+              ) : (
+                'Create Account'
+              )}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-surface-700/60">
+            Already have an account?{' '}
+            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
+              Sign in
+            </Link>
+          </p>
+        </div>
+
+        <Link
+          to="/"
+          className="mt-6 flex items-center justify-center text-sm font-medium text-surface-700/50 hover:text-primary-600 transition-colors"
+        >
+          <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Home
+        </Link>
+      </div>
+    </div>
+  );
+}

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { productService } from '../../services/productService';
+import { downloadCSV } from '../../utils/exportUtils';
 import DataTable from '../../components/Dashboard/DataTable';
 import SearchBar from '../../components/Dashboard/SearchBar';
 import AddButton from '../../components/Dashboard/AddButton';
 
 export default function Inventory() {
   const { businessData } = useAuth();
+  const { t } = useLanguage();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,6 +42,18 @@ export default function Inventory() {
     }
   };
 
+  const handleExport = () => {
+    const dataToExport = products.map(p => ({
+      Product_Name: p.name,
+      SKU: p.sku || 'N/A',
+      Category: p.category || 'N/A',
+      Price: p.price || 0,
+      Stock_Quantity: p.stockQuantity || 0,
+      Status: p.stockQuantity > 10 ? 'Normal' : 'Low Stock'
+    }));
+    downloadCSV(dataToExport, 'Inventory_Products');
+  };
+
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           p.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -50,7 +65,7 @@ export default function Inventory() {
 
   const columns = [
     { 
-      header: 'Product Name', 
+      header: t('Product Name'), 
       accessor: 'name',
       render: (row) => (
         <div className="flex flex-col">
@@ -59,36 +74,36 @@ export default function Inventory() {
         </div>
       )
     },
-    { header: 'Category', accessor: 'category' },
+    { header: t('Category'), accessor: 'category' },
     { 
-      header: 'Price', 
+      header: t('Price'), 
       accessor: 'price',
       render: (row) => <span className="font-bold text-surface-700">₹{row.price.toLocaleString()}</span>
     },
     { 
-      header: 'Stock', 
+      header: t('Stock'), 
       accessor: 'stockQuantity',
       render: (row) => (
         <div className="flex items-center gap-2">
           <span className={`font-black ${row.stockQuantity <= 10 ? 'text-red-600' : 'text-surface-900'}`}>{row.stockQuantity}</span>
-          <span className="text-surface-300 text-[10px] font-bold">units</span>
+          <span className="text-surface-300 text-[10px] font-bold">{t('units')}</span>
         </div>
       )
     },
     { 
-      header: 'Status', 
+      header: t('Status'), 
       render: (row) => (
         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
           row.stockQuantity > 10 
             ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
             : 'bg-red-50 text-red-700 border-red-100 animate-pulse'
         }`}>
-          {row.stockQuantity > 10 ? 'Normal' : 'Low Stock'}
+          {row.stockQuantity > 10 ? t('Normal') : t('Low Stock')}
         </span>
       )
     },
     {
-      header: 'Actions',
+      header: t('Actions'),
       align: 'right',
       render: (row) => (
         <div className="flex justify-end gap-2">
@@ -109,18 +124,30 @@ export default function Inventory() {
     <div className="max-w-6xl mx-auto anime-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-black text-surface-900 tracking-tight">Inventory</h1>
-          <p className="text-surface-500 font-medium">Track stock levels and manage your catalog.</p>
+          <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Inventory')}</h1>
+          <p className="text-surface-500 font-medium">{t('Track stock levels and manage your catalog.')}</p>
         </div>
-        <AddButton to="/dashboard/inventory/add" label="Add Product" />
+        <div className="flex gap-3">
+          <button 
+            onClick={handleExport}
+            disabled={products.length === 0}
+            className="inline-flex items-center gap-2 rounded-2xl bg-surface-100 px-6 py-3 text-sm font-bold text-surface-700 shadow-sm hover:bg-surface-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export CSV
+          </button>
+          <AddButton to="/dashboard/inventory/add" label={t('Add Product')} />
+        </div>
       </div>
 
       <div className="bg-white rounded-[2rem] border border-surface-200 shadow-sm overflow-hidden min-h-[500px]">
         <div className="p-6 border-b border-surface-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <SearchBar value={searchTerm} onChange={setSearchTerm} placeholder="Search products..." />
+          <SearchBar value={searchTerm} onChange={setSearchTerm} placeholder={t('Search products...')} />
           
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
-            <span className="text-[10px] font-black uppercase text-surface-300 mr-2">Filter:</span>
+            <span className="text-[10px] font-black uppercase text-surface-300 mr-2">{t('Filter:')}</span>
             {categories.map(cat => (
               <button
                 key={cat}
@@ -139,7 +166,7 @@ export default function Inventory() {
           columns={columns} 
           data={filteredProducts} 
           loading={loading} 
-          emptyMessage="No products match your criteria. Add your first item to get started."
+          emptyMessage={t('No products match your criteria. Add your first item to get started.')}
         />
 
         {error && (

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { invoiceService } from '../../services/invoiceService';
+import { downloadCSV } from '../../utils/exportUtils';
 import StatCard from '../../components/Dashboard/StatCard';
 import InvoiceTable from '../../components/Dashboard/InvoiceTable';
 
 export default function Sales() {
   const { businessData } = useAuth();
+  const { t } = useLanguage();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,6 +34,18 @@ export default function Sales() {
     }
   }
 
+  const handleExport = () => {
+    const dataToExport = invoices.map(inv => ({
+      Invoice_ID: inv.invoiceId || inv.id,
+      Date: inv.date ? new Date(inv.date?.seconds * 1000).toLocaleDateString() : 'N/A',
+      Customer: inv.customerName || 'N/A',
+      Amount: inv.totalAmount || 0,
+      Status: inv.status || 'Pending',
+      Items_Count: inv.items?.length || 0
+    }));
+    downloadCSV(dataToExport, 'Sales_Invoices');
+  };
+
   const filteredInvoices = filter === 'All' 
     ? invoices 
     : invoices.filter(inv => inv.status === filter);
@@ -44,39 +59,51 @@ export default function Sales() {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-black text-surface-900 tracking-tight">Sales & Invoicing</h1>
-          <p className="text-surface-500 font-medium">Manage your invoices and track payments.</p>
+          <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Sales & Invoicing')}</h1>
+          <p className="text-surface-500 font-medium">{t('Manage your invoices and track payments.')}</p>
         </div>
-        <Link 
-          to="/dashboard/sales/create"
-          className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-0.5 transition-all active:scale-95"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          New Invoice
-        </Link>
+        <div className="flex gap-3">
+          <button 
+            onClick={handleExport}
+            disabled={invoices.length === 0}
+            className="inline-flex items-center gap-2 rounded-2xl bg-surface-100 px-6 py-3 text-sm font-bold text-surface-700 shadow-sm hover:bg-surface-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            {t('Export CSV')}
+          </button>
+          <Link 
+            to="/dashboard/sales/create"
+            className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-0.5 transition-all active:scale-95"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            {t('New Invoice')}
+          </Link>
+        </div>
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <StatCard 
-          title="Total Sales" 
+          title={t('Total Sales')} 
           value={`₹${totalSales.toLocaleString()}`} 
-          label="Cumulative revenue" 
+          label={t('Cumulative revenue')} 
           icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
           trend="+0%"
         />
         <StatCard 
-          title="Paid Invoices" 
+          title={t('Paid Invoices')} 
           value={paidCount.toString()} 
-          label={`${invoices.length} total generated`} 
+          label={`${invoices.length} ${t('total generated')}`} 
           icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
         />
         <StatCard 
-          title="Pending Payments" 
+          title={t('Pending Payments')} 
           value={`₹${pendingSales.toLocaleString()}`} 
-          label="Outstanding collections" 
+          label={t('Outstanding collections')} 
           icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </div>
@@ -84,7 +111,7 @@ export default function Sales() {
       {/* Main Table Card */}
       <div className="bg-white rounded-[2rem] border border-surface-200 shadow-sm overflow-hidden">
         <div className="px-8 py-6 border-b border-surface-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="font-black text-surface-900 text-lg">Invoices</h2>
+          <h2 className="font-black text-surface-900 text-lg">{t('Invoices')}</h2>
           <div className="flex bg-surface-50 p-1 rounded-xl">
             {['All', 'Paid', 'Pending'].map((opt) => (
               <button
@@ -94,7 +121,7 @@ export default function Sales() {
                   filter === opt ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-900'
                 }`}
               >
-                {opt}
+                {t(opt)}
               </button>
             ))}
           </div>

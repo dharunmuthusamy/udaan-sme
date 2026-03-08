@@ -60,10 +60,19 @@ export async function createWorkspace(userId, name, email, businessName) {
     email,
     role: 'owner',
     businessId,
+    setupCompleted: false, // New flag for onboarding wizard
     createdAt: serverTimestamp(),
   });
 
   return { businessId };
+}
+
+/**
+ * Update user profile
+ */
+export async function updateUserProfile(userId, data) {
+  ensureDb();
+  await setDoc(doc(db, 'users', userId), data, { merge: true });
 }
 
 /**

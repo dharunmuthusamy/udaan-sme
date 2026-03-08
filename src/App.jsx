@@ -19,8 +19,20 @@ import AddProduct from './pages/dashboard/AddProduct';
 import CRM from './pages/dashboard/CRM';
 import AddCustomer from './pages/dashboard/AddCustomer';
 import Tasks from './pages/dashboard/Tasks';
+import CreateTask from './pages/dashboard/CreateTask';
 import Analytics from './pages/dashboard/Analytics';
 import Settings from './pages/dashboard/Settings';
+import Onboarding from './pages/dashboard/Onboarding';
+import Quotations from './pages/dashboard/Quotations';
+import CreateQuotation from './pages/dashboard/CreateQuotation';
+import QuotationDetail from './pages/dashboard/QuotationDetail';
+import Orders from './pages/dashboard/Orders';
+import OrderDetail from './pages/dashboard/OrderDetail';
+import Vendors from './pages/dashboard/Vendors';
+import AddVendor from './pages/dashboard/AddVendor';
+import Purchases from './pages/dashboard/Purchases';
+import RecordPurchase from './pages/dashboard/RecordPurchase';
+import HelpCenter from './pages/dashboard/HelpCenter';
 
 // Components
 import Navbar from './components/Navbar';
@@ -51,16 +63,28 @@ function LayoutWrapper() {
           {/* Professional Dashboard Shell with Nested Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
+            <Route path="onboarding" element={<Onboarding />} />
             <Route path="sales" element={<Sales />} />
+            <Route path="sales/quotations" element={<Quotations />} />
+            <Route path="sales/quotations/:quotationId" element={<QuotationDetail />} />
             <Route path="sales/create" element={<CreateInvoice />} />
+            <Route path="sales/create-quotation" element={<CreateQuotation />} />
+            <Route path="sales/orders" element={<Orders />} />
+            <Route path="sales/orders/:orderId" element={<OrderDetail />} />
             <Route path="sales/:invoiceId" element={<InvoiceDetail />} />
             <Route path="inventory" element={<Inventory />} />
             <Route path="inventory/add" element={<AddProduct />} />
+            <Route path="vendors" element={<Vendors />} />
+            <Route path="vendors/add-vendor" element={<AddVendor />} />
+            <Route path="purchases" element={<Purchases />} />
+            <Route path="purchases/record" element={<RecordPurchase />} />
             <Route path="crm" element={<CRM />} />
             <Route path="crm/add" element={<AddCustomer />} />
             <Route path="tasks" element={<Tasks />} />
+            <Route path="tasks/create" element={<CreateTask />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<HelpCenter />} />
           </Route>
         </Routes>
       </main>

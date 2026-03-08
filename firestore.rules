@@ -36,5 +36,25 @@ service cloud.firestore {
     match /tasks/{id} {
       allow read, write: if request.auth != null;
     }
+    
+    // Quotations collection
+    match /quotations/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Orders collection
+    match /orders/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Vendors collection
+    match /vendors/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Purchases collection
+    match /purchases/{id} {
+      allow read, write: if request.auth != null;
+    }
   }
 }

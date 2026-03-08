@@ -1,4 +1,7 @@
+import { useLanguage } from '../../context/LanguageContext';
+
 export default function ModulePage({ title, description, icon }) {
+  const { t } = useLanguage();
   return (
     <div className="max-w-6xl mx-auto anime-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
@@ -7,7 +10,7 @@ export default function ModulePage({ title, description, icon }) {
           <p className="text-surface-500 font-medium mt-1">{description}</p>
         </div>
         <button className="rounded-xl bg-primary-600 px-6 py-3 font-bold text-white shadow-lg shadow-primary-200 hover:bg-primary-700 hover:scale-[1.02] active:scale-[0.98] transition-all">
-          + Add New
+          {t('+ Add New')}
         </button>
       </div>
 
@@ -23,7 +26,7 @@ export default function ModulePage({ title, description, icon }) {
           Start by adding your first entry to generate reports and analytics.
         </p>
         <button className="text-primary-600 font-bold hover:underline">
-          View Documentation →
+          {t('View Documentation →')}
         </button>
       </div>
     </div>

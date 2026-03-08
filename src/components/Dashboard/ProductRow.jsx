@@ -1,20 +1,23 @@
+import { useLanguage } from '../../context/LanguageContext';
+
 export default function ProductRow({ row, index, products, onUpdate, onRemove }) {
+  const { t } = useLanguage();
   const selectedProduct = products.find(p => p.id === row.productId);
 
   return (
     <div className="grid grid-cols-12 gap-4 items-end mb-4 group anime-slide-in">
       {/* Product Selection */}
       <div className="col-span-12 md:col-span-5">
-        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1">Product</label>
+        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1">{t('Product')}</label>
         <select
           value={row.productId}
           onChange={(e) => onUpdate(index, 'productId', e.target.value)}
           className="w-full rounded-xl border border-surface-200 bg-surface-50 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary-500/20 transition-all appearance-none cursor-pointer"
         >
-          <option value="">Select a product</option>
+          <option value="">{t('Select a product')}</option>
           {products.map(p => (
             <option key={p.id} value={p.id}>
-              {p.name} - ₹{p.price.toLocaleString()} (Stock: {p.stockQuantity})
+              {p.name} - ₹{p.price.toLocaleString()} ({t('Stock')}: {p.stockQuantity})
             </option>
           ))}
         </select>
@@ -22,7 +25,7 @@ export default function ProductRow({ row, index, products, onUpdate, onRemove })
 
       {/* Price */}
       <div className="col-span-4 md:col-span-2">
-        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1">Price</label>
+        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1">{t('Price')}</label>
         <input
           type="number"
           value={row.unitPrice}
@@ -33,7 +36,7 @@ export default function ProductRow({ row, index, products, onUpdate, onRemove })
 
       {/* Quantity */}
       <div className="col-span-4 md:col-span-2">
-        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1">Qty</label>
+        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1">{t('Qty')}</label>
         <input
           type="number"
           min="1"
@@ -46,7 +49,7 @@ export default function ProductRow({ row, index, products, onUpdate, onRemove })
 
       {/* Subtotal */}
       <div className="col-span-3 md:col-span-2">
-        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1 text-right pr-4">Subtotal</label>
+        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1 text-right pr-4">{t('Subtotal')}</label>
         <div className="w-full px-4 py-3 text-sm font-black text-surface-900 text-right">
           ₹{(row.unitPrice * row.quantity).toLocaleString()}
         </div>

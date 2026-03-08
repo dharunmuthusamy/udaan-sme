@@ -4,18 +4,13 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { customerService } from '../../services/customerService';
 import { productService } from '../../services/productService';
-import { invoiceService } from '../../services/invoiceService';
-import { orderService } from '../../services/orderService';
+import { quotationService } from '../../services/quotationService';
 import ProductRow from '../../components/Dashboard/ProductRow';
-import { useLocation } from 'react-router-dom';
 
-export default function CreateInvoice() {
+export default function CreateQuotation() {
   const { businessData, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const orderId = queryParams.get('orderId');
   
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
@@ -26,9 +21,9 @@ export default function CreateInvoice() {
   const [form, setForm] = useState({
     customerId: '',
     customerName: '',
-    invoiceDate: new Date().toISOString().split('T')[0],
+    quotationDate: new Date().toISOString().split('T')[0],
     taxRate: 0,
-    status: 'Pending',
+    status: 'Draft',
     rows: [{ productId: '', name: '', quantity: 1, unitPrice: 0, subtotal: 0 }]
   });
 
@@ -36,7 +31,7 @@ export default function CreateInvoice() {
     if (businessData?.id) {
       loadMasterData();
     }
-  }, [businessData, orderId]);
+  }, [businessData]);
 
   async function loadMasterData() {
     try {
@@ -47,35 +42,9 @@ export default function CreateInvoice() {
       setCustomers(custs);
       setProducts(prods);
     } catch (err) {
-      console.error('[CreateInvoice] Load error:', err);
+      console.error('[CreateQuotation] Load error:', err);
     } finally {
       setLoading(false);
-    }
-    
-    if (orderId) {
-      await loadOrder(custs || [], prods || []);
-    }
-  }
-
-  async function loadOrder(allCustomers, allProducts) {
-    try {
-      const order = await orderService.getById(orderId);
-      if (order) {
-        setForm(prev => ({
-          ...prev,
-          customerId: order.customerId,
-          customerName: order.customerName,
-          rows: order.products.map(p => ({
-            productId: p.productId,
-            name: p.name,
-            quantity: p.quantity,
-            unitPrice: p.unitPrice,
-            subtotal: p.subtotal
-          }))
-        }));
-      }
-    } catch (err) {
-      console.error('[CreateInvoice] Order load error:', err);
     }
   }
 
@@ -126,44 +95,38 @@ export default function CreateInvoice() {
 
     try {
       const customer = customers.find(c => c.id === form.customerId);
-      const invoiceData = {
+      const quotationData = {
         customerId: form.customerId,
         customerName: customer?.name || 'Unknown',
-        invoiceDate: form.invoiceDate,
+        quotationDate: form.quotationDate,
         products: form.rows,
         tax: form.taxRate,
         totalAmount,
         status: form.status,
-        createdBy: user.uid,
-        orderId: orderId || null
+        createdBy: user.uid
       };
 
-      await invoiceService.create(businessData.id, invoiceData);
-      navigate('/dashboard/sales');
+      await quotationService.create(businessData.id, quotationData);
+      navigate('/dashboard/sales/quotations');
     } catch (err) {
-      console.error('[CreateInvoice] Save error:', err);
-      setError(err.message || 'Failed to save invoice. Please check stock levels.');
+      console.error('[CreateQuotation] Save error:', err);
+      setError(err.message || 'Failed to save quotation.');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="p-12 text-center animate-pulse">Loading creation suite...</div>;
+  if (loading) return <div className="p-12 text-center animate-pulse">Loading quotation suite...</div>;
 
   return (
     <div className="max-w-5xl mx-auto anime-fade-in pb-20">
       <div className="flex items-center gap-4 mb-8">
-        <Link to="/dashboard/sales" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
+        <Link to="/dashboard/sales/quotations" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Create Invoice')}</h1>
-        {orderId && (
-          <span className="ml-4 px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-xs font-mono font-bold">
-            ORD-{orderId.slice(-6).toUpperCase()}
-          </span>
-        )}
+        <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Create Quotation')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -171,12 +134,12 @@ export default function CreateInvoice() {
           <div className="bg-white rounded-[2rem] border border-surface-200 p-8 shadow-sm">
             <h2 className="font-bold text-surface-900 mb-6 flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[10px] text-primary-600 uppercase">01</span>
-              {t('Client & Details')}
+              {t('Quotation Context')}
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Select Customer')}</label>
+                <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Client')}</label>
                 <select
                   value={form.customerId}
                   onChange={(e) => setForm({ ...form, customerId: e.target.value })}
@@ -189,11 +152,11 @@ export default function CreateInvoice() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Invoice Date')}</label>
+                <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Date')}</label>
                 <input
                   type="date"
-                  value={form.invoiceDate}
-                  onChange={(e) => setForm({ ...form, invoiceDate: e.target.value })}
+                  value={form.quotationDate}
+                  onChange={(e) => setForm({ ...form, quotationDate: e.target.value })}
                   className="w-full rounded-2xl border border-surface-200 bg-surface-50 px-4 py-3.5 text-sm font-bold focus:ring-2 focus:ring-primary-500/20 transition-all"
                 />
               </div>
@@ -203,7 +166,7 @@ export default function CreateInvoice() {
           <div className="bg-white rounded-[2rem] border border-surface-200 p-8 shadow-sm">
             <h2 className="font-bold text-surface-900 mb-6 flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[10px] text-primary-600 uppercase">02</span>
-              {t('Line Items')}
+              {t('Quoted Items')}
             </h2>
             
             <div className="space-y-4">
@@ -231,7 +194,7 @@ export default function CreateInvoice() {
 
         <div className="space-y-6">
           <div className="bg-surface-900 rounded-[2rem] p-8 text-white shadow-xl sticky top-24">
-            <h2 className="font-bold text-lg mb-6 border-b border-white/10 pb-4">{t('Invoice Summary')}</h2>
+            <h2 className="font-bold text-lg mb-6 border-b border-white/10 pb-4">{t('Quotation Summary')}</h2>
             
             <div className="space-y-4 text-sm font-bold">
               <div className="flex justify-between items-center opacity-60">
@@ -259,9 +222,9 @@ export default function CreateInvoice() {
 
             <div className="mt-10 space-y-4">
               <div>
-                <label className="block text-[10px] font-black uppercase text-white/40 mb-2">{t('Payment Status')}</label>
+                <label className="block text-[10px] font-black uppercase text-white/40 mb-2">{t('Initial Status')}</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {['Pending', 'Paid'].map(s => (
+                  {['Draft', 'Sent'].map(s => (
                     <button
                       key={s}
                       type="button"
@@ -270,7 +233,7 @@ export default function CreateInvoice() {
                         form.status === s ? 'bg-primary-600 border-primary-500 scale-105 shadow-lg' : 'bg-white/5 border-white/10 hover:bg-white/10'
                       }`}
                     >
-                      {t(s)}
+                      {s}
                     </button>
                   ))}
                 </div>
@@ -283,7 +246,7 @@ export default function CreateInvoice() {
                 disabled={saving}
                 className="w-full py-4 bg-white text-surface-900 rounded-2xl font-black hover:bg-primary-50 transition-all active:scale-95 disabled:opacity-50"
               >
-                {saving ? t('Generating...') : t('Save & Finalize →')}
+                {saving ? t('Creating...') : t('Save Quotation →')}
               </button>
             </div>
           </div>

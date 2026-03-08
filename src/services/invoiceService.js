@@ -74,6 +74,16 @@ export const invoiceService = {
       
       transaction.set(invoiceRef, finalInvoiceData);
       
+      // 6. If linked to an order, mark it as completed
+      if (invoiceData.orderId) {
+        const orderRef = doc(db, 'orders', invoiceData.orderId);
+        transaction.update(orderRef, { 
+          status: 'Completed', 
+          updatedAt: serverTimestamp(),
+          invoiceId: invoiceRef.id 
+        });
+      }
+      
       return { id: invoiceRef.id, ...finalInvoiceData };
     });
   },

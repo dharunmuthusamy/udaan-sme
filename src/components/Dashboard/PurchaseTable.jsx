@@ -33,7 +33,7 @@ export default function PurchaseTable({ purchases }) {
             {purchases.map((purchase) => (
               <tr key={purchase.id} className="hover:bg-surface-50/50 transition-colors group">
                 <td className="px-6 py-4 text-sm font-bold text-surface-900">
-                  {new Date(purchase.date).toLocaleDateString()}
+                  {new Date(purchase.date || purchase.purchaseDate).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4">
                   <p className="font-bold text-surface-900">{purchase.vendorName}</p>

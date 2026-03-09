@@ -57,32 +57,26 @@ export default function Sales() {
   return (
     <div className="max-w-6xl mx-auto anime-fade-in">
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Sales & Invoicing')}</h1>
-          <p className="text-surface-500 font-medium">{t('Manage your invoices and track payments.')}</p>
-        </div>
-        <div className="flex gap-3">
-          <button 
-            onClick={handleExport}
-            disabled={invoices.length === 0}
-            className="inline-flex items-center gap-2 rounded-2xl bg-surface-100 px-6 py-3 text-sm font-bold text-surface-700 shadow-sm hover:bg-surface-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            {t('Export CSV')}
-          </button>
-          <Link 
-            to="/dashboard/sales/create"
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-0.5 transition-all active:scale-95"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            {t('New Invoice')}
-          </Link>
-        </div>
+      <div className="flex justify-end gap-3 mb-6">
+        <button 
+          onClick={handleExport}
+          disabled={invoices.length === 0}
+          className="inline-flex items-center gap-2 rounded-2xl bg-surface-100 px-6 py-3 text-sm font-bold text-surface-700 shadow-sm hover:bg-surface-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          {t('Export CSV')}
+        </button>
+        <Link 
+          to="/dashboard/sales/create"
+          className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-0.5 transition-all active:scale-95"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          {t('New Invoice')}
+        </Link>
       </div>
 
       {/* Stats row */}

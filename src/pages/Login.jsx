@@ -6,7 +6,7 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ phone: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,19 +18,18 @@ export default function Login() {
     e.preventDefault();
     setError('');
 
-    if (!form.email.trim()) return setError('Email is required.');
+    const digits = form.phone.replace(/\D/g, '');
+    if (digits.length !== 10) return setError('Please enter a valid 10-digit phone number.');
     if (!form.password) return setError('Password is required.');
 
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      await login(digits, form.password);
       navigate('/dashboard');
     } catch (err) {
       console.error('[Login]', err);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('Invalid email or password.');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('Please enter a valid email address.');
+        setError('Invalid phone number or password.');
       } else if (err.code === 'auth/too-many-requests') {
         setError('Too many failed attempts. Please try again later.');
       } else {
@@ -70,18 +69,25 @@ export default function Login() {
           {/* Form */}
           <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-surface-700 mb-1.5">
-                Email
+              <label htmlFor="phone" className="block text-sm font-medium text-surface-700 mb-1.5">
+                Phone Number
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="you@company.com"
-                className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3.5 py-2.5 text-sm text-surface-900 placeholder-surface-700/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-400 transition"
-              />
+              <div className="flex">
+                <span className="inline-flex items-center rounded-l-lg border border-r-0 border-surface-200 bg-surface-100 px-3 text-sm text-surface-500 font-medium select-none">
+                  +91
+                </span>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="9876543210"
+                  className="w-full rounded-r-lg border border-surface-200 bg-surface-50 px-3.5 py-2.5 text-sm text-surface-900 placeholder-surface-700/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-400 transition"
+                />
+              </div>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-surface-700 mb-1.5">

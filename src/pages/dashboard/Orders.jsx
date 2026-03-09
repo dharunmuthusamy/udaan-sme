@@ -41,12 +41,7 @@ export default function Orders() {
 
   return (
     <div className="max-w-6xl mx-auto anime-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Sales Orders')}</h1>
-          <p className="text-surface-500 font-medium">{t('Manage and fulfill your customer orders.')}</p>
-        </div>
-      </div>
+      {/* Header removed - handled by SalesLayout */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <StatCard 

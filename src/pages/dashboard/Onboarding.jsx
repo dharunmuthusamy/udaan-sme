@@ -8,12 +8,36 @@ import { QUESTIONS, calculateResults } from '../../services/assessmentLogic';
 import { saveAssessment } from '../../services/assessmentService';
 
 export default function Onboarding() {
-  const { user, businessData } = useAuth();
+  const { user, userData, businessData, logout } = useAuth();
   const navigate = useNavigate();
   
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  if (userData?.role !== 'owner') {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6 bg-surface-50">
+        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-surface-200 text-center">
+          <div className="mx-auto w-16 h-16 bg-primary-100 text-primary-600 flex items-center justify-center rounded-full mb-6">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-surface-900 mb-4">Waiting for Approval</h2>
+          <p className="text-surface-600 mb-6">
+            Your request to join the business is currently pending. Please wait for the business owner to review and approve your request.
+          </p>
+          <button 
+            onClick={async () => { await logout(); navigate('/login'); }} 
+            className="bg-primary-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-primary-700 w-full transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Step 1: Assessment State
   const [assessmentStep, setAssessmentStep] = useState(0); // 0 to QUESTIONS.length - 1

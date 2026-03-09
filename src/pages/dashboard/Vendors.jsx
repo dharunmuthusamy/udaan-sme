@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { vendorService } from '../../services/vendorService';
+import { purchaseService } from '../../services/purchaseService';
 import VendorTable from '../../components/Dashboard/VendorTable';
 
 export default function Vendors() {
@@ -10,23 +11,42 @@ export default function Vendors() {
   const { t } = useLanguage();
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('All');
+  const [purchasedVendorIds, setPurchasedVendorIds] = useState(new Set());
 
   useEffect(() => {
     if (businessData?.id) {
-      loadVendors();
+      loadData();
     }
   }, [businessData]);
 
-  async function loadVendors() {
+  async function loadData() {
     try {
-      const data = await vendorService.getAll(businessData.id);
-      setVendors(data);
+      setLoading(true);
+      const [vendorData, purchaseData] = await Promise.all([
+        vendorService.getAll(businessData.id),
+        purchaseService.getAll(businessData.id)
+      ]);
+      
+      const pIds = new Set(purchaseData.map(p => p.vendorId));
+      setPurchasedVendorIds(pIds);
+      setVendors(vendorData);
     } catch (err) {
       console.error('[Vendors] Load error:', err);
     } finally {
       setLoading(false);
     }
   }
+
+  const filteredVendors = vendors.filter(v => {
+    const search = searchTerm.toLowerCase();
+    const matchesSearch = v.name?.toLowerCase().includes(search) || v.phone?.includes(searchTerm);
+    
+    if (filter === 'With Purchases') return matchesSearch && purchasedVendorIds.has(v.id);
+    if (filter === 'Without Purchases') return matchesSearch && !purchasedVendorIds.has(v.id);
+    return matchesSearch;
+  });
 
   return (
     <div className="space-y-8 anime-fade-in">
@@ -36,7 +56,7 @@ export default function Vendors() {
           <p className="text-surface-500 mt-1 font-medium">{t('Manage your suppliers and service providers.')}</p>
         </div>
         <Link
-          to="/dashboard/vendors/add-vendor"
+          to="/dashboard/purchases/vendors/add"
           className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-0.5 transition-all active:scale-95"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -44,6 +64,35 @@ export default function Vendors() {
           </svg>
           {t('Add Vendor')}
         </Link>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="relative w-full md:w-96">
+          <input
+            type="text"
+            placeholder={t('Search by name or phone...')}
+            className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-surface-200 bg-white font-bold text-sm focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 transition-all shadow-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div className="flex items-center gap-1 p-1 bg-surface-100 rounded-2xl">
+          {['All', 'With Purchases', 'Without Purchases'].map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                filter === f ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-700'
+              }`}
+            >
+              {t(f)}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -68,7 +117,7 @@ export default function Vendors() {
           <div className="h-4 w-32 bg-surface-100 rounded mx-auto"></div>
         </div>
       ) : (
-        <VendorTable vendors={vendors} />
+        <VendorTable vendors={filteredVendors} />
       )}
     </div>
   );

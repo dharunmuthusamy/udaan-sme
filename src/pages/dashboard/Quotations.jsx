@@ -43,11 +43,7 @@ export default function Quotations() {
   return (
     <div className="max-w-6xl mx-auto anime-fade-in">
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Quotations')}</h1>
-          <p className="text-surface-500 font-medium">{t('Manage and track your business quotations.')}</p>
-        </div>
+      <div className="flex justify-end mb-6">
         <Link 
           to="/dashboard/sales/create-quotation"
           className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-0.5 transition-all active:scale-95"

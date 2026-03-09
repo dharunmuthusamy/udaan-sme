@@ -44,13 +44,13 @@ export default function TaskTable({ tasks }) {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-xs">
-                      {task.assignedTo?.charAt(0).toUpperCase() || '?'}
+                      {task.assignedToName?.charAt(0).toUpperCase() || '?'}
                     </div>
-                    <p className="font-medium text-surface-600">{task.assignedTo}</p>
+                    <p className="font-medium text-surface-600">{task.assignedToName}</p>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm font-bold text-surface-900">
-                  {new Date(task.dueDate).toLocaleDateString()}
+                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : t('No Date')}
                 </td>
                 <td className="px-6 py-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-black ${getStatusColor(task.status)}`}>

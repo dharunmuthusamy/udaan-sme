@@ -50,8 +50,7 @@ export const purchaseService = {
   getAll: async (businessId) => {
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('businessId', '==', businessId),
-      orderBy('date', 'desc')
+      where('businessId', '==', businessId)
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

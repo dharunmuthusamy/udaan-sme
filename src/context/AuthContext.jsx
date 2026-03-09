@@ -47,15 +47,39 @@ export function AuthProvider({ children }) {
 
   // ─── Auth actions ───
 
-  async function signup(email, password, fullName, businessName) {
-    const firebaseUser = await authSignUp(email, password, fullName);
-    const { businessId } = await createWorkspace(firebaseUser.uid, fullName, email, businessName);
+  async function signup(phone, password, fullName, businessName, whatsappNumber, location, shopImageFile, role) {
+    const firebaseUser = await authSignUp(phone, password, fullName);
+    const { businessId } = await createWorkspace(firebaseUser.uid, fullName, phone, businessName, whatsappNumber, location, shopImageFile, role);
     await loadProfile(firebaseUser);
-    return { user: firebaseUser, businessId, isNewBusiness: true };
+    return { user: firebaseUser, businessId, isNewBusiness: role === 'owner' };
   }
 
-  async function login(email, password) {
-    const firebaseUser = await authLogIn(email, password);
+  async function login(phone, password) {
+    const firebaseUser = await authLogIn(phone, password);
+    await loadProfile(firebaseUser);
+    return firebaseUser;
+  }
+
+  async function joinBusiness(phone, password, whatsappNumber, role, businessId) {
+    // 1. Create the Firebase Auth user
+    const firebaseUser = await authSignUp(phone, password, 'Staff Member');
+    // 2. Create the Join Request, attaching their UID so we can identify them
+    // Note: We won't block them if this fails, but they won't be able to log in to dashboard without businessId
+    const { createJoinRequest } = await import('../services/dbService');
+    await createJoinRequest(firebaseUser.uid, phone, whatsappNumber, role, businessId);
+    
+    // Create a shell user profile so they aren't completely missing
+    const { setDocument } = await import('../services/dbService');
+    await setDocument('users', firebaseUser.uid, {
+      userId: firebaseUser.uid,
+      phone,
+      whatsappNumber: whatsappNumber || phone,
+      role,
+      businessId: null, // No business until approved
+      setupCompleted: false,
+      joinStatus: 'pending'
+    });
+
     await loadProfile(firebaseUser);
     return firebaseUser;
   }
@@ -75,6 +99,7 @@ export function AuthProvider({ children }) {
     signup,
     login,
     logout,
+    joinBusiness,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -26,8 +26,12 @@ export default function CreateInvoice() {
   const [form, setForm] = useState({
     customerId: '',
     customerName: '',
-    invoiceDate: new Date().toISOString().split('T')[0],
-    taxRate: 0,
+    date: new Date().toISOString().split('T')[0],
+    gstNumber: '',
+    cgst: 9,
+    sgst: 9,
+    igst: 18,
+    isInterState: false, // true = IGST, false = CGST+SGST
     status: 'Pending',
     rows: [{ productId: '', name: '', quantity: 1, unitPrice: 0, subtotal: 0 }]
   });
@@ -113,7 +117,14 @@ export default function CreateInvoice() {
   };
 
   const subtotal = form.rows.reduce((sum, row) => sum + row.subtotal, 0);
-  const taxAmount = (subtotal * form.taxRate) / 100;
+  
+  let taxAmount = 0;
+  if (form.isInterState) {
+    taxAmount = (subtotal * form.igst) / 100;
+  } else {
+    taxAmount = (subtotal * (form.cgst + form.sgst)) / 100;
+  }
+  
   const totalAmount = subtotal + taxAmount;
 
   const handleSubmit = async (e) => {
@@ -129,9 +140,14 @@ export default function CreateInvoice() {
       const invoiceData = {
         customerId: form.customerId,
         customerName: customer?.name || 'Unknown',
-        invoiceDate: form.invoiceDate,
+        date: form.date,
         products: form.rows,
-        tax: form.taxRate,
+        gstNumber: form.gstNumber,
+        cgst: form.cgst,
+        sgst: form.sgst,
+        igst: form.igst,
+        isInterState: form.isInterState,
+        taxAmount,
         totalAmount,
         status: form.status,
         createdBy: user.uid,
@@ -175,25 +191,45 @@ export default function CreateInvoice() {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Select Customer')}</label>
-                <select
+              <div className="md:col-span-1">
+                <SearchableDropdown
+                  type="customer"
+                  label={t('Select Customer')}
                   value={form.customerId}
-                  onChange={(e) => setForm({ ...form, customerId: e.target.value })}
-                  className="w-full rounded-2xl border border-surface-200 bg-surface-50 px-4 py-3.5 text-sm font-bold focus:ring-2 focus:ring-primary-500/20 transition-all appearance-none cursor-pointer"
-                >
-                  <option value="">{t('Choose a client...')}</option>
-                  {customers.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                  onChange={(custId) => {
+                    const customer = customers.find(c => c.id === custId);
+                    let isInterState = false;
+                    if (customer && customer.address && businessData?.location) {
+                      const custAddr = customer.address.toLowerCase();
+                      const bizLoc = businessData.location.toLowerCase();
+                      if (!custAddr.includes(bizLoc)) {
+                        isInterState = true;
+                      }
+                    }
+                    setForm({ ...form, customerId: custId, isInterState });
+                  }}
+                  onAddSuccess={(newItem) => setCustomers(prev => [...prev, newItem])}
+                  options={customers}
+                  businessId={businessData.id}
+                  placeholder={t('Choose a client...')}
+                />
               </div>
               <div>
+                <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Business GSTIN (Optional)')}</label>
+                <input
+                  type="text"
+                  value={form.gstNumber}
+                  onChange={(e) => setForm({ ...form, gstNumber: e.target.value.toUpperCase() })}
+                  className="w-full rounded-2xl border border-surface-200 bg-surface-50 px-4 py-3.5 text-sm font-bold focus:ring-2 focus:ring-primary-500/20 transition-all uppercase placeholder:normal-case"
+                  placeholder="e.g. 29ABCDE1234FZ5"
+                />
+              </div>
+              <div className="md:col-span-2">
                 <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Invoice Date')}</label>
                 <input
                   type="date"
-                  value={form.invoiceDate}
-                  onChange={(e) => setForm({ ...form, invoiceDate: e.target.value })}
+                  value={form.date}
+                  onChange={(e) => setForm({ ...form, date: e.target.value })}
                   className="w-full rounded-2xl border border-surface-200 bg-surface-50 px-4 py-3.5 text-sm font-bold focus:ring-2 focus:ring-primary-500/20 transition-all"
                 />
               </div>
@@ -215,6 +251,7 @@ export default function CreateInvoice() {
                   products={products}
                   onUpdate={handleRowUpdate}
                   onRemove={removeRow}
+                  onAddSuccess={(newItem) => setProducts(prev => [...prev, newItem])}
                 />
               ))}
             </div>
@@ -238,18 +275,68 @@ export default function CreateInvoice() {
                 <span>{t('Subtotal')}</span>
                 <span>₹{subtotal.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between items-center gap-4">
-                <span className="opacity-60">{t('Tax Rate (%)')}</span>
-                <input 
-                  type="number"
-                  value={form.taxRate}
-                  onChange={(e) => setForm({...form, taxRate: parseInt(e.target.value) || 0})}
-                  className="w-20 bg-white/10 rounded-lg px-2 py-1 text-right outline-none focus:ring-1 focus:ring-primary-400"
-                />
+              
+              <div className="pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="opacity-60">{t('Tax Type')}</span>
+                  <div className="flex bg-white/10 rounded-lg p-1">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, isInterState: false })}
+                      className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${!form.isInterState ? 'bg-primary-500 text-white shadow-sm' : 'text-white/60 hover:text-white'}`}
+                    >
+                      CGST + SGST
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, isInterState: true })}
+                      className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${form.isInterState ? 'bg-primary-500 text-white shadow-sm' : 'text-white/60 hover:text-white'}`}
+                    >
+                      IGST (Inter-state)
+                    </button>
+                  </div>
+                </div>
+
+                {!form.isInterState ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="opacity-60">{t('CGST (%)')}</span>
+                      <input 
+                        type="number"
+                        value={form.cgst}
+                        onChange={(e) => setForm({...form, cgst: parseFloat(e.target.value) || 0})}
+                        className="w-16 bg-white/10 rounded-lg px-2 py-1 text-right outline-none focus:ring-1 focus:ring-primary-400"
+                        step="0.01"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center gap-4">
+                      <span className="opacity-60">{t('SGST (%)')}</span>
+                      <input 
+                        type="number"
+                        value={form.sgst}
+                        onChange={(e) => setForm({...form, sgst: parseFloat(e.target.value) || 0})}
+                        className="w-16 bg-white/10 rounded-lg px-2 py-1 text-right outline-none focus:ring-1 focus:ring-primary-400"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="opacity-60">{t('IGST (%)')}</span>
+                    <input 
+                      type="number"
+                      value={form.igst}
+                      onChange={(e) => setForm({...form, igst: parseFloat(e.target.value) || 0})}
+                      className="w-16 bg-white/10 rounded-lg px-2 py-1 text-right outline-none focus:ring-1 focus:ring-primary-400"
+                      step="0.01"
+                    />
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between items-center opacity-60">
-                <span>{t('Tax Amount')}</span>
-                <span>₹{taxAmount.toLocaleString()}</span>
+
+              <div className="flex justify-between items-center opacity-60 pt-4 border-t border-white/10">
+                <span>{t('Total Tax Amount')}</span>
+                <span>₹{taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
               </div>
               <div className="pt-4 border-t border-white/10 flex justify-between items-center text-xl font-black">
                 <span>{t('Total')}</span>

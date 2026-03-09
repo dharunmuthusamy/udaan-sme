@@ -22,6 +22,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (businessData?.id) {
       loadDashboardStats();
+    } else {
+      setLoading(false);
     }
   }, [businessData]);
 
@@ -176,8 +178,7 @@ export default function Dashboard() {
             <div className="bg-white rounded-[2.5rem] p-8 border border-surface-200 shadow-sm">
               <div className="h-12 w-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center text-xl mb-6 italic">Task</div>
               <h4 className="font-black text-surface-900 mb-2">{t('Stay Organized')}</h4>
-              <p className="text-surface-500 text-xs font-medium leading-relaxed mb-6">{t('Create follow-ups for unpaid invoices or low-stock items automatically')}</p>
-              <Link to="/dashboard/tasks" className="text-primary-600 font-bold text-xs hover:underline decoration-2">{t('Open Task List')} →</Link>
+              <Link to="/dashboard/staffs/tasks" className="text-primary-600 font-bold text-xs hover:underline decoration-2">{t('Open Task List')} →</Link>
             </div>
           </div>
         </div>

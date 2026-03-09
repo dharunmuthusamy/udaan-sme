@@ -15,6 +15,7 @@ export default function Inventory() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
     if (businessData?.id) {
@@ -55,17 +56,27 @@ export default function Inventory() {
   };
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (p.category && p.category.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
     return matchesSearch && matchesCategory;
+  }).sort((a, b) => {
+    const stockA = a.stockQuantity || 0;
+    const stockB = b.stockQuantity || 0;
+
+    if (sortOrder === 'asc') {
+      return stockA - stockB;
+    } else {
+      return stockB - stockA;
+    }
   });
 
   const categories = ['All', ...new Set(products.map(p => p.category))];
 
   const columns = [
-    { 
-      header: t('Product Name'), 
+    {
+      header: t('Product Name'),
       accessor: 'name',
       render: (row) => (
         <div className="flex flex-col">
@@ -75,13 +86,13 @@ export default function Inventory() {
       )
     },
     { header: t('Category'), accessor: 'category' },
-    { 
-      header: t('Price'), 
+    {
+      header: t('Price'),
       accessor: 'price',
       render: (row) => <span className="font-bold text-surface-700">₹{row.price.toLocaleString()}</span>
     },
-    { 
-      header: t('Stock'), 
+    {
+      header: t('Stock'),
       accessor: 'stockQuantity',
       render: (row) => (
         <div className="flex items-center gap-2">
@@ -90,14 +101,13 @@ export default function Inventory() {
         </div>
       )
     },
-    { 
-      header: t('Status'), 
+    {
+      header: t('Status'),
       render: (row) => (
-        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-          row.stockQuantity > 10 
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
-            : 'bg-red-50 text-red-700 border-red-100 animate-pulse'
-        }`}>
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${row.stockQuantity > 10
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+          : 'bg-red-50 text-red-700 border-red-100 animate-pulse'
+          }`}>
           {row.stockQuantity > 10 ? t('Normal') : t('Low Stock')}
         </span>
       )
@@ -107,7 +117,7 @@ export default function Inventory() {
       align: 'right',
       render: (row) => (
         <div className="flex justify-end gap-2">
-          <button 
+          <button
             onClick={() => handleDelete(row.id)}
             className="p-2 text-surface-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
           >
@@ -128,7 +138,7 @@ export default function Inventory() {
           <p className="text-surface-500 font-medium">{t('Track stock levels and manage your catalog.')}</p>
         </div>
         <div className="flex gap-3">
-          <button 
+          <button
             onClick={handleExport}
             disabled={products.length === 0}
             className="inline-flex items-center gap-2 rounded-2xl bg-surface-100 px-6 py-3 text-sm font-bold text-surface-700 shadow-sm hover:bg-surface-200 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -143,18 +153,31 @@ export default function Inventory() {
       </div>
 
       <div className="bg-white rounded-[2rem] border border-surface-200 shadow-sm overflow-hidden min-h-[500px]">
-        <div className="p-6 border-b border-surface-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <SearchBar value={searchTerm} onChange={setSearchTerm} placeholder={t('Search products...')} />
-          
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
-            <span className="text-[10px] font-black uppercase text-surface-300 mr-2">{t('Filter:')}</span>
+        <div className="p-6 border-b border-surface-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+            <div className="w-full sm:w-auto">
+              <SearchBar value={searchTerm} onChange={setSearchTerm} placeholder={t('Search products...')} />
+            </div>
+
+            <button
+              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+              className="w-full sm:w-auto whitespace-nowrap flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border border-surface-200 bg-white font-bold text-sm text-surface-700 hover:bg-surface-50 transition-all shadow-sm active:scale-95"
+            >
+              <svg className="w-4 h-4 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={sortOrder === 'asc' ? "M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" : "M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"} />
+              </svg>
+              {t('Sort')} <span className="text-primary-600 font-black">{sortOrder === 'asc' ? '' : ''}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar w-full lg:w-auto">
+            <span className="text-[10px] font-black uppercase text-surface-300 mr-2 flex-shrink-0">{t('Filter:')}</span>
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  categoryFilter === cat ? 'bg-primary-600 text-white shadow-md' : 'bg-surface-50 text-surface-500 hover:bg-surface-100'
-                }`}
+                className={`flex-shrink-0 px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${categoryFilter === cat ? 'bg-primary-600 text-white shadow-md' : 'bg-surface-50 text-surface-500 hover:bg-surface-100'
+                  }`}
               >
                 {cat}
               </button>
@@ -162,10 +185,10 @@ export default function Inventory() {
           </div>
         </div>
 
-        <DataTable 
-          columns={columns} 
-          data={filteredProducts} 
-          loading={loading} 
+        <DataTable
+          columns={columns}
+          data={filteredProducts}
+          loading={loading}
           emptyMessage={t('No products match your criteria. Add your first item to get started.')}
         />
 

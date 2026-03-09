@@ -5,13 +5,15 @@ const COLLECTION_NAME = 'customers';
 
 export const customerService = {
   create: async (businessId, data) => {
-    return await addDoc(collection(db, COLLECTION_NAME), {
+    const finalData = {
       ...data,
       businessId,
       totalPurchases: 0,
       recentInvoices: [],
       createdAt: serverTimestamp(),
-    });
+    };
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), finalData);
+    return { id: docRef.id, ...finalData };
   },
 
   getAll: async (businessId) => {

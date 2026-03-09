@@ -88,6 +88,18 @@ export default function InvoiceDetail() {
         
         pdf.line(20, y, 190, y);
         y += 10;
+        pdf.setFontSize(10);
+        
+        if (invoice.isInterState) {
+          pdf.text(`IGST (${invoice.igst}%): INR ${(invoice.taxAmount || 0).toLocaleString()}`, 160, y, { align: 'right' });
+          y += 10;
+        } else {
+          pdf.text(`CGST (${invoice.cgst}%): INR ${((invoice.taxAmount || 0) / 2).toLocaleString()}`, 160, y, { align: 'right' });
+          y += 5;
+          pdf.text(`SGST (${invoice.sgst}%): INR ${((invoice.taxAmount || 0) / 2).toLocaleString()}`, 160, y, { align: 'right' });
+          y += 10;
+        }
+
         pdf.setFontSize(14);
         pdf.text(`TOTAL: INR ${invoice.totalAmount.toLocaleString()}`, 160, y, { align: 'right' });
         
@@ -190,6 +202,7 @@ export default function InvoiceDetail() {
             <div className="text-sm text-surface-500 space-y-1 font-medium">
               <p>Business Owner: {businessData?.ownerName || 'Admin'}</p>
               <p>Email: {businessData?.supportEmail || 'support@udaansme.com'}</p>
+              {invoice.gstNumber && <p className="text-surface-900 font-bold mt-2">GSTIN: {invoice.gstNumber}</p>}
             </div>
           </div>
           <div className="text-right">
@@ -240,12 +253,25 @@ export default function InvoiceDetail() {
           <div className="w-64 space-y-4">
             <div className="flex justify-between text-sm font-bold text-surface-500">
               <span>Subtotal</span>
-              <span>₹{subtotal.toLocaleString()}</span>
+              <span>₹{subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
             </div>
-            <div className="flex justify-between text-sm font-bold text-surface-500">
-              <span>Tax ({invoice.tax || 0}%)</span>
-              <span>₹{((subtotal * (invoice.tax || 0)) / 100).toLocaleString()}</span>
-            </div>
+            {invoice.isInterState ? (
+              <div className="flex justify-between text-sm font-bold text-surface-500">
+                <span>IGST ({invoice.igst || 0}%)</span>
+                <span>₹{(invoice.taxAmount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between text-sm font-bold text-surface-500">
+                  <span>CGST ({invoice.cgst || 0}%)</span>
+                  <span>₹{((invoice.taxAmount || 0) / 2).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+                <div className="flex justify-between text-sm font-bold text-surface-500">
+                  <span>SGST ({invoice.sgst || 0}%)</span>
+                  <span>₹{((invoice.taxAmount || 0) / 2).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+              </>
+            )}
             <div className="pt-4 border-t border-surface-900 flex justify-between text-2xl font-black text-surface-900 font-mono">
               <span>TOTAL</span>
               <span className="text-primary-600">₹{invoice.totalAmount.toLocaleString()}</span>

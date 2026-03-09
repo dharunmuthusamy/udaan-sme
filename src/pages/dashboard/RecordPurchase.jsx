@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { purchaseService } from '../../services/purchaseService';
 import { vendorService } from '../../services/vendorService';
 import { productService } from '../../services/productService';
+import SearchableDropdown from '../../components/Common/SearchableDropdown';
 
 export default function RecordPurchase() {
   const { businessData } = useAuth();
@@ -23,6 +24,20 @@ export default function RecordPurchase() {
     date: new Date().toISOString().split('T')[0]
   });
 
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateField = (name, value) => {
+    const errors = { ...validationErrors };
+    if (!value) {
+      errors[name] = `${name.charAt(0).toUpperCase() + name.slice(1).replace('Id', '')} is required`;
+    } else {
+      delete errors[name];
+    }
+    setValidationErrors(errors);
+  };
+
+  const isFormValid = formData.vendorId && formData.productId && formData.quantity && formData.price && formData.date && Object.keys(validationErrors).length === 0;
+
   useEffect(() => {
     if (businessData?.id) {
       loadInitialData();
@@ -35,8 +50,8 @@ export default function RecordPurchase() {
         vendorService.getAll(businessData.id),
         productService.getAll(businessData.id)
       ]);
-      setVendors(vData);
-      setProducts(pData);
+      setVendors(vData || []);
+      setProducts(pData || []);
     } catch (err) {
       console.error('[RecordPurchase] Load error:', err);
       setError('Failed to load vendors or products.');
@@ -47,8 +62,8 @@ export default function RecordPurchase() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.vendorId || !formData.productId || !formData.quantity || !formData.price) {
-      return setError('All fields are required');
+    if (!isFormValid) {
+      return setError('Please fill in all required fields.');
     }
     
     setLoading(true);
@@ -60,12 +75,12 @@ export default function RecordPurchase() {
 
       await purchaseService.create(businessData.id, {
         ...formData,
-        vendorName: selectedVendor.name,
-        productName: selectedProduct.name,
+        vendorName: selectedVendor?.name || 'Unknown Vendor',
+        productName: selectedProduct?.name || 'Unknown Product',
         quantity: Number(formData.quantity),
         price: Number(formData.price)
       });
-      navigate('/dashboard/purchases');
+      navigate('/dashboard/purchases/records');
     } catch (err) {
       console.error('[RecordPurchase] Create error:', err);
       setError('Failed to record purchase. ' + err.message);
@@ -81,7 +96,7 @@ export default function RecordPurchase() {
   return (
     <div className="max-w-2xl mx-auto anime-fade-in pb-20">
       <div className="flex items-center gap-4 mb-8">
-        <Link to="/dashboard/purchases" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
+        <Link to="/dashboard/purchases/records" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
@@ -91,69 +106,95 @@ export default function RecordPurchase() {
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-[2rem] border border-surface-200 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Vendor</label>
-            <select
-              required
-              className="w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500"
+          <div className="space-y-1">
+            <SearchableDropdown
+              type="vendor"
+              label="Vendor *"
               value={formData.vendorId}
-              onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
-            >
-              <option value="">Select Vendor</option>
-              {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-            </select>
+              onChange={(id) => {
+                setFormData({ ...formData, vendorId: id });
+                validateField('vendorId', id);
+              }}
+              onAddSuccess={(newItem) => setVendors(prev => [...prev, newItem])}
+              options={vendors}
+              businessId={businessData?.id}
+              placeholder="Select Vendor"
+              error={validationErrors.vendorId}
+            />
+            {validationErrors.vendorId && <p className="ml-1 text-[10px] font-bold text-red-500">{validationErrors.vendorId}</p>}
           </div>
-          <div>
-            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Product</label>
-            <select
-              required
-              className="w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500"
+
+          <div className="space-y-1">
+            <SearchableDropdown
+              type="product"
+              label="Product *"
               value={formData.productId}
-              onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-            >
-              <option value="">Select Product</option>
-              {products.map(p => <option key={p.id} value={p.id}>{p.name} (Stock: {p.stockQuantity})</option>)}
-            </select>
+              onChange={(id) => {
+                setFormData({ ...formData, productId: id });
+                validateField('productId', id);
+              }}
+              onAddSuccess={(newItem) => setProducts(prev => [...prev, newItem])}
+              options={products}
+              businessId={businessData?.id}
+              placeholder="Select Product"
+              error={validationErrors.productId}
+            />
+            {validationErrors.productId && <p className="ml-1 text-[10px] font-bold text-red-500">{validationErrors.productId}</p>}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Quantity</label>
+            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Quantity *</label>
             <input
               type="number"
               required
               min="1"
-              className="w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500"
+              className={`w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500 transition-all ${validationErrors.quantity ? 'border-red-500 bg-red-50/50' : ''}`}
               placeholder="0"
               value={formData.quantity}
-              onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, quantity: e.target.value });
+                validateField('quantity', e.target.value);
+              }}
             />
+            {validationErrors.quantity && <p className="mt-1 ml-1 text-[10px] font-bold text-red-500">{validationErrors.quantity}</p>}
           </div>
           <div>
-            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Purchase Price (per unit)</label>
-            <input
-              type="number"
-              required
-              min="0"
-              step="0.01"
-              className="w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500"
-              placeholder="0.00"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-            />
+            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Price per Unit *</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 font-bold">₹</span>
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                className={`w-full rounded-2xl border-surface-200 bg-surface-50 p-4 pl-8 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500 transition-all ${validationErrors.price ? 'border-red-500 bg-red-50/50' : ''}`}
+                placeholder="0.00"
+                value={formData.price}
+                onChange={(e) => {
+                  setFormData({ ...formData, price: e.target.value });
+                  validateField('price', e.target.value);
+                }}
+              />
+            </div>
+            {validationErrors.price && <p className="mt-1 ml-1 text-[10px] font-bold text-red-500">{validationErrors.price}</p>}
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Date</label>
+          <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Purchase Date *</label>
           <input
             type="date"
             required
-            className="w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500"
+            className={`w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500 transition-all ${validationErrors.date ? 'border-red-500 bg-red-50/50' : ''}`}
             value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, date: e.target.value });
+              validateField('date', e.target.value);
+            }}
           />
+          {validationErrors.date && <p className="mt-1 ml-1 text-[10px] font-bold text-red-500">{validationErrors.date}</p>}
         </div>
 
         {error && (
@@ -168,10 +209,10 @@ export default function RecordPurchase() {
         <div className="pt-4">
           <button
             type="submit"
-            disabled={loading}
-            className="w-full rounded-2xl bg-primary-600 px-8 py-4 text-sm font-black text-white shadow-xl shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
+            disabled={loading || !isFormValid}
+            className="w-full rounded-2xl bg-primary-600 px-8 py-4 text-sm font-black text-white shadow-xl shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:translate-y-0"
           >
-            {loading ? 'Recording Purchase...' : 'Confirm Purchase'}
+            {loading ? 'Recording...' : 'Record Purchase'}
           </button>
         </div>
       </form>

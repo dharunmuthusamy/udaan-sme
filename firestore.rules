@@ -1,9 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allows anyone who is logged in to read/write their own profiles and business data
+    // Allows anyone who is logged in to read/write user profiles
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null;
     }
     
     // Business data access
@@ -55,6 +55,12 @@ service cloud.firestore {
     // Purchases collection
     match /purchases/{id} {
       allow read, write: if request.auth != null;
+    }
+
+    // Join Requests collection
+    match /joinRequests/{id} {
+      allow create: if true; // Unauthenticated users can create requests
+      allow read, update, delete: if request.auth != null; // Owners manage them
     }
   }
 }

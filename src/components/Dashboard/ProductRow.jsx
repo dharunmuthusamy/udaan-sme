@@ -1,26 +1,26 @@
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import SearchableDropdown from '../Common/SearchableDropdown';
 
-export default function ProductRow({ row, index, products, onUpdate, onRemove }) {
+export default function ProductRow({ row, index, products, onUpdate, onRemove, onAddSuccess }) {
   const { t } = useLanguage();
+  const { businessData } = useAuth();
   const selectedProduct = products.find(p => p.id === row.productId);
 
   return (
     <div className="grid grid-cols-12 gap-4 items-end mb-4 group anime-slide-in">
       {/* Product Selection */}
       <div className="col-span-12 md:col-span-5">
-        <label className="block text-[10px] font-black uppercase text-surface-400 mb-1 ml-1">{t('Product')}</label>
-        <select
+        <SearchableDropdown
+          type="product"
+          label={t('Product')}
           value={row.productId}
-          onChange={(e) => onUpdate(index, 'productId', e.target.value)}
-          className="w-full rounded-xl border border-surface-200 bg-surface-50 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary-500/20 transition-all appearance-none cursor-pointer"
-        >
-          <option value="">{t('Select a product')}</option>
-          {products.map(p => (
-            <option key={p.id} value={p.id}>
-              {p.name} - ₹{p.price.toLocaleString()} ({t('Stock')}: {p.stockQuantity})
-            </option>
-          ))}
-        </select>
+          onChange={(val) => onUpdate(index, 'productId', val)}
+          onAddSuccess={onAddSuccess}
+          options={products}
+          businessId={businessData?.id}
+          placeholder={t('Select a product')}
+        />
       </div>
 
       {/* Price */}

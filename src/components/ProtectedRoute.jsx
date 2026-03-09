@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -6,7 +6,8 @@ import { useAuth } from '../context/AuthContext';
  * Shows a spinner while auth state is loading, redirects to /login if unauthenticated.
  */
 export default function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -24,6 +25,16 @@ export default function ProtectedRoute({ children }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Global interception: if a staff user is pending, trap them in /waiting-approval
+  if (userData?.joinStatus === 'pending' && location.pathname !== '/waiting-approval') {
+    return <Navigate to="/waiting-approval" replace />;
+  }
+
+  // Prevent approved users (or owners) from viewing the waiting-approval screen manually
+  if (userData?.joinStatus !== 'pending' && location.pathname === '/waiting-approval') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

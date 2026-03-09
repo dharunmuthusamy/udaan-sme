@@ -5,6 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { customerService } from '../../services/customerService';
 import { productService } from '../../services/productService';
 import { quotationService } from '../../services/quotationService';
+import SearchableDropdown from '../../components/Common/SearchableDropdown';
 import ProductRow from '../../components/Dashboard/ProductRow';
 
 export default function CreateQuotation() {
@@ -21,7 +22,7 @@ export default function CreateQuotation() {
   const [form, setForm] = useState({
     customerId: '',
     customerName: '',
-    quotationDate: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0],
     taxRate: 0,
     status: 'Draft',
     rows: [{ productId: '', name: '', quantity: 1, unitPrice: 0, subtotal: 0 }]
@@ -98,7 +99,7 @@ export default function CreateQuotation() {
       const quotationData = {
         customerId: form.customerId,
         customerName: customer?.name || 'Unknown',
-        quotationDate: form.quotationDate,
+        date: form.date,
         products: form.rows,
         tax: form.taxRate,
         totalAmount,
@@ -138,25 +139,31 @@ export default function CreateQuotation() {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Client')}</label>
-                <select
+              <div className="md:col-span-1">
+                <SearchableDropdown
+                  type="customer"
+                  label={t('Client')}
                   value={form.customerId}
-                  onChange={(e) => setForm({ ...form, customerId: e.target.value })}
-                  className="w-full rounded-2xl border border-surface-200 bg-surface-50 px-4 py-3.5 text-sm font-bold focus:ring-2 focus:ring-primary-500/20 transition-all appearance-none cursor-pointer"
-                >
-                  <option value="">{t('Choose a client...')}</option>
-                  {customers.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                  onChange={(custId) => {
+                    const customer = customers.find(c => c.id === custId);
+                    setForm({
+                      ...form,
+                      customerId: custId,
+                      customerName: customer ? customer.name : ''
+                    });
+                  }}
+                  onAddSuccess={(newItem) => setCustomers(prev => [...prev, newItem])}
+                   options={customers}
+                  businessId={businessData.id}
+                  placeholder={t('Choose a client...')}
+                />
               </div>
               <div>
                 <label className="block text-xs font-black uppercase text-surface-400 mb-2 ml-1">{t('Date')}</label>
                 <input
                   type="date"
-                  value={form.quotationDate}
-                  onChange={(e) => setForm({ ...form, quotationDate: e.target.value })}
+                  value={form.date}
+                  onChange={(e) => setForm({ ...form, date: e.target.value })}
                   className="w-full rounded-2xl border border-surface-200 bg-surface-50 px-4 py-3.5 text-sm font-bold focus:ring-2 focus:ring-primary-500/20 transition-all"
                 />
               </div>
@@ -178,6 +185,7 @@ export default function CreateQuotation() {
                   products={products}
                   onUpdate={handleRowUpdate}
                   onRemove={removeRow}
+                  onAddSuccess={(newItem) => setProducts(prev => [...prev, newItem])}
                 />
               ))}
             </div>

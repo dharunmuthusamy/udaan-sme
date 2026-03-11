@@ -34,10 +34,13 @@ export default function Tasks() {
         taskService.getAll(businessData.id),
         getBusinessUsers(businessData.id)
       ]);
-      const formattedStaff = staffData.map(s => ({
-        ...s,
-        name: s.fullName || s.phone || 'Unknown Staff',
-      }));
+      const formattedStaff = staffData.map(s => {
+        const displayName = s.fullName || s.name || s.phone || 'Unknown Staff';
+        return {
+          ...s,
+          name: (s.phone && displayName !== s.phone) ? `${displayName} - ${s.phone}` : displayName,
+        };
+      });
 
       const enrichedTasks = tasksData.map(t => {
         const staff = formattedStaff.find(s => s.id === t.assignedTo);

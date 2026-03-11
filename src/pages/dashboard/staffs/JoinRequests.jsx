@@ -162,7 +162,7 @@ export default function JoinRequests() {
         <div className="rounded-2xl border border-surface-200 bg-white overflow-hidden">
           {/* Table header */}
           <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-surface-50 border-b border-surface-200 text-xs font-bold uppercase tracking-wider text-surface-500">
-            <div className="col-span-4">Phone Number</div>
+            <div className="col-span-4">Staff Name & Contact</div>
             <div className="col-span-3">Requested Role</div>
             <div className="col-span-2">Status</div>
             <div className="col-span-3 text-right">{filter === 'pending' ? 'Actions' : ''}</div>
@@ -175,10 +175,8 @@ export default function JoinRequests() {
               className="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-surface-100 last:border-b-0 hover:bg-surface-50/50 transition-colors"
             >
               <div className="col-span-4">
-                <span className="text-sm font-semibold text-surface-900">+91 {req.phone}</span>
-                {req.whatsappNumber && req.whatsappNumber !== req.phone && (
-                  <p className="text-xs text-surface-400 mt-0.5">WA: +91 {req.whatsappNumber}</p>
-                )}
+                <span className="text-sm font-semibold text-surface-900">{req.fullName || 'Unknown Staff'}</span>
+                <p className="text-xs text-surface-500 mt-0.5">+91 {req.phone} {req.whatsappNumber && req.whatsappNumber !== req.phone ? `| WA: +91 ${req.whatsappNumber}` : ''}</p>
               </div>
               <div className="col-span-3">
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${roleBadgeColors[req.requestedRole] || 'bg-surface-100 text-surface-600 border-surface-200'}`}>

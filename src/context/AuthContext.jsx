@@ -60,18 +60,19 @@ export function AuthProvider({ children }) {
     return firebaseUser;
   }
 
-  async function joinBusiness(phone, password, whatsappNumber, role, businessId) {
+  async function joinBusiness(fullName, phone, password, whatsappNumber, role, businessId) {
     // 1. Create the Firebase Auth user
-    const firebaseUser = await authSignUp(phone, password, 'Staff Member');
+    const firebaseUser = await authSignUp(phone, password, fullName);
     // 2. Create the Join Request, attaching their UID so we can identify them
     // Note: We won't block them if this fails, but they won't be able to log in to dashboard without businessId
     const { createJoinRequest } = await import('../services/dbService');
-    await createJoinRequest(firebaseUser.uid, phone, whatsappNumber, role, businessId);
+    await createJoinRequest(firebaseUser.uid, fullName, phone, whatsappNumber, role, businessId);
     
     // Create a shell user profile so they aren't completely missing
     const { setDocument } = await import('../services/dbService');
     await setDocument('users', firebaseUser.uid, {
       userId: firebaseUser.uid,
+      fullName,
       phone,
       whatsappNumber: whatsappNumber || phone,
       role,

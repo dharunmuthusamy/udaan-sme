@@ -77,6 +77,7 @@ export default function UserManagement() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-surface-50 text-surface-500">
               <tr>
+                <th className="px-6 py-4 font-medium">{t('Staff Contact Name')}</th>
                 <th className="px-6 py-4 font-medium">{t('Phone Number')}</th>
                 <th className="px-6 py-4 font-medium">{t('WhatsApp Number')}</th>
                 <th className="px-6 py-4 font-medium">{t('Role')}</th>
@@ -88,7 +89,15 @@ export default function UserManagement() {
               {users.map((user) => (
                 <tr key={user.id} className="hover:bg-surface-50/50 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="text-surface-900 font-medium">{user.phone}</div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-xs uppercase">
+                        {(user.fullName || user.phone || '?').charAt(0)}
+                      </div>
+                      <span className="font-bold text-surface-900">{user.fullName || 'Unknown Staff'}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-surface-600 font-medium">{user.phone}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-surface-600">{user.whatsappNumber || '-'}</div>

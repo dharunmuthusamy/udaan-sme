@@ -62,5 +62,18 @@ service cloud.firestore {
       allow create: if true; // Unauthenticated users can create requests
       allow read, update, delete: if request.auth != null; // Owners manage them
     }
+
+    // Attendance collection
+    match /attendance/{id} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (
+        resource.data.staffId == request.auth.uid ||
+        resource.data.businessId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.businessId
+      );
+      allow update: if request.auth != null && (
+        resource.data.staffId == request.auth.uid ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role != 'staff'
+      );
+    }
   }
 }

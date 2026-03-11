@@ -30,6 +30,7 @@ export default function Signup() {
 
   // ─── Join form state ───
   const [joinForm, setJoinForm] = useState({
+    fullName: '',
     phone: '',
     whatsappNumber: '',
     password: '',
@@ -132,6 +133,7 @@ export default function Signup() {
     setError('');
     setSuccess('');
 
+    if (!joinForm.fullName.trim()) return setError('Full Name is required.');
     const digits = joinForm.phone.replace(/\D/g, '');
     if (digits.length !== 10) return setError('Please enter a valid 10-digit phone number.');
     const waDigits = joinForm.whatsappNumber.replace(/\D/g, '');
@@ -141,9 +143,9 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      await joinBusiness(digits, joinForm.password, waDigits, joinRole, joinForm.businessId.trim());
+      await joinBusiness(joinForm.fullName.trim(), digits, joinForm.password, waDigits, joinRole, joinForm.businessId.trim());
       setSuccess('Your join request has been submitted! The business owner will review and approve your request.');
-      setJoinForm({ phone: '', whatsappNumber: '', password: '', businessId: '' });
+      setJoinForm({ fullName: '', phone: '', whatsappNumber: '', password: '', businessId: '' });
       setJoinRole('accountant');
       // Optionally navigate out or wait
       setTimeout(() => navigate('/dashboard/onboarding'), 2000);
@@ -301,6 +303,11 @@ export default function Signup() {
           {/* ════════════════════════════════════════════ */}
           {mode === 'join' && (
             <form className="mt-5 space-y-4" onSubmit={handleJoinSubmit}>
+              <div>
+                <label htmlFor="joinFullName" className="block text-sm font-medium text-surface-700 mb-1.5">Full Name</label>
+                <input id="joinFullName" name="fullName" type="text" value={joinForm.fullName} onChange={handleJoinChange} placeholder="Ramesh Kumar" className={inputClass} />
+              </div>
+
               {/* Phone */}
               <div>
                 <label htmlFor="joinPhone" className="block text-sm font-medium text-surface-700 mb-1.5">Phone Number</label>

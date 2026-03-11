@@ -41,6 +41,7 @@ import HelpCenter from './pages/dashboard/HelpCenter';
 import JoinRequests from './pages/dashboard/staffs/JoinRequests';
 import UserManagement from './pages/dashboard/staffs/UserManagement';
 import StaffsLayout from './pages/dashboard/staffs/StaffsLayout';
+import Attendance from './pages/dashboard/staffs/Attendance';
 import BusinessProfile from './pages/dashboard/BusinessProfile';
 
 // Components
@@ -54,8 +55,9 @@ function StaffsIndexRedirect() {
   const { userData, loading } = useAuth();
   if (loading) return null;
   if (!userData) return <Navigate to="/dashboard" replace />;
-  // Only owners can see Users and Join Requests.
-  if (userData.role === 'owner') return <Navigate to="users" replace />;
+  // Owners and Accountants can see Users and Join Requests.
+  const isManager = ['owner', 'accountant'].includes(userData.role);
+  if (isManager) return <Navigate to="users" replace />;
   // Everyone else goes to Tasks
   return <Navigate to="tasks" replace />;
 }
@@ -112,12 +114,13 @@ function LayoutWrapper() {
             <Route path="crm" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant']}><CRM /></RoleProtectedRoute>} />
             <Route path="crm/add" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant']}><AddCustomer /></RoleProtectedRoute>} />
 
-            <Route path="staffs" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'staff']}><StaffsLayout /></RoleProtectedRoute>}>
+            <Route path="staffs" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><StaffsLayout /></RoleProtectedRoute>}>
               <Route index element={<StaffsIndexRedirect />} />
               <Route path="users" element={<RoleProtectedRoute allowedRoles={['owner']}><UserManagement /></RoleProtectedRoute>} />
               <Route path="join-requests" element={<RoleProtectedRoute allowedRoles={['owner']}><JoinRequests /></RoleProtectedRoute>} />
               <Route path="tasks" element={<Tasks />} />
               <Route path="tasks/create" element={<CreateTask />} />
+              <Route path="attendance" element={<Attendance />} />
             </Route>
 
             <Route path="analytics" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant']}><Analytics /></RoleProtectedRoute>} />

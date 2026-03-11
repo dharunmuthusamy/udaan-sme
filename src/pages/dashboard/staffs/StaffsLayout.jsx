@@ -8,6 +8,7 @@ export default function StaffsLayout() {
     { name: 'User Management', path: 'users' },
     { name: 'Join Requests', path: 'join-requests' },
     { name: 'Tasks', path: 'tasks' },
+    { name: 'Attendance', path: 'attendance' },
   ];
 
   return (

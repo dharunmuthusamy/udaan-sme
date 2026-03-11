@@ -42,7 +42,7 @@ export default function SearchableDropdown({
 
   const filteredOptions = options.filter(opt => {
     const search = searchQuery.toLowerCase();
-    if (type === 'customer') {
+    if (type === 'customer' || type === 'staff') {
       return opt.name?.toLowerCase().includes(search) || opt.phone?.includes(search);
     }
     return opt.name?.toLowerCase().includes(search);
@@ -127,6 +127,15 @@ export default function SearchableDropdown({
   return (
     <div className="relative" ref={dropdownRef}>
       <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">{label}</label>
+      <input
+        tabIndex={-1}
+        autoComplete="off"
+        style={{ opacity: 0, height: 0, width: '100%', position: 'absolute', bottom: 0, pointerEvents: 'none' }}
+        value={value || ''}
+        required={required}
+        onChange={() => {}}
+        onFocus={() => setIsOpen(true)}
+      />
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full rounded-2xl border bg-surface-50 p-4 font-bold cursor-pointer flex justify-between items-center transition-all ${

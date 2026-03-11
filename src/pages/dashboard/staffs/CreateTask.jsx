@@ -31,10 +31,13 @@ export default function CreateTask() {
   async function loadStaff() {
     try {
       const data = await getBusinessUsers(businessData.id);
-      const formattedStaff = data.map(s => ({
-        ...s,
-        name: s.fullName || s.phone || 'Unknown Staff',
-      }));
+      const formattedStaff = data.map(s => {
+        const displayName = s.fullName || s.name || s.phone || 'Unknown Staff';
+        return {
+          ...s,
+          name: (s.phone && displayName !== s.phone) ? `${displayName} - ${s.phone}` : displayName,
+        };
+      });
       setStaff(formattedStaff);
     } catch (err) {
       console.error('[CreateTask] Load staff error:', err);
@@ -78,7 +81,7 @@ export default function CreateTask() {
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-[2rem] border border-surface-200 shadow-sm">
         <div>
-          <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Task Name</label>
+          <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Task Name <span className="text-red-500">*</span></label>
           <input
             type="text"
             required
@@ -91,17 +94,18 @@ export default function CreateTask() {
 
         <SearchableDropdown
           type="staff"
-          label="Assigned Staff"
+          label={<span>Assigned Staff <span className="text-red-500">*</span></span>}
           value={formData.assignedTo}
           onChange={(val) => setFormData({ ...formData, assignedTo: val })}
           options={staff}
           businessId={businessData.id}
           placeholder="Select staff member"
+          required={true}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Due Date</label>
+            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Due Date <span className="text-red-500">*</span></label>
             <input
                type="date"
                required
@@ -111,7 +115,7 @@ export default function CreateTask() {
             />
           </div>
           <div>
-            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Status</label>
+            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Status <span className="text-red-500">*</span></label>
             <select
               required
               className="w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500"
@@ -137,7 +141,7 @@ export default function CreateTask() {
         <div className="pt-4">
           <button
             type="submit"
-            disabled={loading || !isFormValid}
+            disabled={loading}
             className="w-full rounded-2xl bg-primary-600 px-8 py-4 text-sm font-black text-white shadow-xl shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Task...' : 'Create Task'}

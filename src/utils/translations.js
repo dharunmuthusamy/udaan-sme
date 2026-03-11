@@ -160,6 +160,24 @@ export const translations = {
     'Assigned To': 'Assigned To',
     'Due Date': 'Due Date',
 
+    // Attendance Page
+    'Attendance': 'Attendance',
+    'Check In': 'Check In',
+    'Check Out': 'Check Out',
+    'Hours Worked': 'Hours Worked',
+    'Staff Name': 'Staff Name',
+    'Start Date': 'Start Date',
+    'End Date': 'End Date',
+    'Check In Time': 'Check In Time',
+    'Check Out Time': 'Check Out Time',
+    'Successfully checked in!': 'Successfully checked in!',
+    'Successfully checked out!': 'Successfully checked out!',
+    'You are already checked in today.': 'You are already checked in today.',
+    'No active check-in found.': 'No active check-in found.',
+    'Already checked out.': 'Already checked out.',
+    'Failed to load attendance:': 'Failed to load attendance:',
+    'Retry': 'Retry',
+
     // Orders Page
     'Sales Orders': 'Sales Orders',
     'Manage and fulfill your customer orders.': 'Manage and fulfill your customer orders.',
@@ -387,6 +405,24 @@ export const translations = {
     'Assigned To': 'सौंपा गया',
     'Due Date': 'नियत तारीख',
 
+    // Attendance Page
+    'Attendance': 'उपस्थिति',
+    'Check In': 'चेक-इन',
+    'Check Out': 'चेक-आउट',
+    'Hours Worked': 'काम के घंटे',
+    'Staff Name': 'कर्मचारी का नाम',
+    'Start Date': 'आरंभ तिथि',
+    'End Date': 'अंतिम तिथि',
+    'Check In Time': 'चेक-इन का समय',
+    'Check Out Time': 'चेक-आउट का समय',
+    'Successfully checked in!': 'चेक-इन सफल रहा!',
+    'Successfully checked out!': 'चेक-आउट सफल रहा!',
+    'You are already checked in today.': 'आप आज पहले ही चेक-इन कर चुके हैं।',
+    'No active check-in found.': 'कोई सक्रिय चेक-इन नहीं मिला।',
+    'Already checked out.': 'पहले ही चेक-आउट कर चुके हैं।',
+    'Failed to load attendance:': 'हाज़िरी लोड करने में विफल:',
+    'Retry': 'पुनः प्रयास करें',
+
     // Orders Page
     'Sales Orders': 'बिक्री आदेश',
     'Manage and fulfill your customer orders.': 'अपने ग्राहक ऑर्डर प्रबंधित करें और पूरा करें।',
@@ -611,6 +647,24 @@ export const translations = {
     'Task Name': 'பணியின் பெயர்',
     'Assigned To': 'ஒதுக்கப்பட்டவர்',
     'Due Date': 'கடைசி தேதி',
+
+    // Attendance Page
+    'Attendance': 'வருகை',
+    'Check In': 'உள்நுழைக (Check In)',
+    'Check Out': 'வெளியேறு (Check Out)',
+    'Hours Worked': 'வேலை நேரம்',
+    'Staff Name': 'ஊழியர் பெயர்',
+    'Start Date': 'தொடக்க தேதி',
+    'End Date': 'முடிவு தேதி',
+    'Check In Time': 'உள்நுழைந்த நேரம்',
+    'Check Out Time': 'வெளியேறிய நேரம்',
+    'Successfully checked in!': 'வெற்றிகரமாக உள்நுழைந்தீர்கள்!',
+    'Successfully checked out!': 'வெற்றிகரமாக வெளியேறினீர்கள்!',
+    'You are already checked in today.': 'நீங்கள் ஏற்கனவே இன்று உள்நுழைந்துள்ளீர்கள்.',
+    'No active check-in found.': 'செயலில் உள்ள உள்நுழைவு எதுவும் இல்லை.',
+    'Already checked out.': 'ஏற்கனவே வெளியேறிவிட்டீர்கள்.',
+    'Failed to load attendance:': 'வருகைப்பதிவை ஏற்றுவதில் தோல்வி:',
+    'Retry': 'மீண்டும் முயற்சிக்கவும்',
 
     // Orders Page
     'Sales Orders': 'விற்பனை ஆர்டர்கள்',

@@ -165,7 +165,7 @@ export async function updateUserStatus(userId, status) {
  * The request is stored as "pending" until the business owner approves it.
  * @returns {{ requestId: string }}
  */
-export async function createJoinRequest(userId, phone, whatsappNumber, requestedRole, businessId) {
+export async function createJoinRequest(userId, fullName, phone, whatsappNumber, requestedRole, businessId) {
   ensureDb();
   const reqRef = doc(collection(db, 'joinRequests'));
   const requestId = reqRef.id;
@@ -173,6 +173,7 @@ export async function createJoinRequest(userId, phone, whatsappNumber, requested
   await setDoc(reqRef, {
     requestId,
     userId, // The Firebase Auth UID
+    fullName,
     phone,
     whatsappNumber: whatsappNumber || phone,
     requestedRole,

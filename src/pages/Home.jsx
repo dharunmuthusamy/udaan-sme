@@ -1,4 +1,10 @@
+import React from 'react';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import HeroSection from '../components/HeroSection';
+import ProblemSection from '../components/ProblemSection';
+import SolutionSection from '../components/SolutionSection';
+import PricingSection from '../components/PricingSection';
 import FeatureCard from '../components/FeatureCard';
 import CTASection from '../components/CTASection';
 
@@ -17,7 +23,7 @@ const InventoryIcon = () => (
 
 const CRMIcon = () => (
   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v-.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
   </svg>
 );
 
@@ -68,102 +74,52 @@ const features = [
 
 export default function Home() {
   return (
-    <>
-      {/* Hero */}
-      <HeroSection />
+    <div className="flex min-h-screen flex-col bg-white">
+      <Navbar />
 
-      {/* Problem Section */}
-      <section className="bg-white py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-block rounded-full bg-red-50 px-4 py-1.5 text-sm font-medium text-red-600 mb-6">
-              The Problem
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-surface-900">
-              Most SMEs Still Run on Paper & WhatsApp
-            </h2>
-            <p className="mt-6 text-lg leading-relaxed text-surface-700/70">
-              Millions of small businesses track sales in notebooks, manage inventory
-              on spreadsheets, and coordinate with customers over WhatsApp. Important
-              data gets lost, decisions are based on guesswork, and growth is held back
-              by manual processes that don't scale.
-            </p>
+      <main className="flex-1 overflow-x-hidden">
+        {/* Hero Section #home */}
+        <HeroSection />
+
+        {/* Problem Section #problem */}
+        <ProblemSection />
+
+        {/* Solution Section #solution */}
+        <SolutionSection />
+
+        {/* Features Grid #features */}
+        <section id="features" className="bg-surface-50 py-24 sm:py-32 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary-500/20 to-transparent" />
+          
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center mb-20">
+              <span className="inline-block rounded-full bg-primary-100 px-4 py-1.5 text-sm font-bold text-primary-700 mb-6 tracking-wide uppercase">
+                Powerful Features
+              </span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-surface-900 leading-tight">
+                Everything You Need to <span className="text-primary-600">Run Your Business</span>
+              </h2>
+              <p className="mt-8 text-lg sm:text-xl text-surface-600 font-medium leading-relaxed">
+                UDAAN-SME simplifies complex workflows into easy-to-use digital tools for your everyday SME needs.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {features.map((feature) => (
+                <FeatureCard key={feature.title} {...feature} />
+              ))}
+            </div>
           </div>
+        </section>
 
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {[
-              { emoji: '📓', label: 'Paper Registers', desc: 'Handwritten records prone to errors and loss' },
-              { emoji: '📊', label: 'Scattered Spreadsheets', desc: 'No single source of truth for your business' },
-              { emoji: '💬', label: 'WhatsApp Workflows', desc: 'Critical orders and follow-ups buried in chats' },
-            ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-red-100 bg-red-50/50 p-6 text-center">
-                <span className="text-3xl">{item.emoji}</span>
-                <h3 className="mt-3 text-base font-semibold text-surface-900">{item.label}</h3>
-                <p className="mt-1 text-sm text-surface-700/70">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        {/* Pricing Comparison #pricing */}
+        <PricingSection />
 
-      {/* Solution Section */}
-      <section className="bg-surface-50 py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-block rounded-full bg-green-50 px-4 py-1.5 text-sm font-medium text-green-600 mb-6">
-              The Solution
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-surface-900">
-              A Modular Toolkit Built for SMEs
-            </h2>
-            <p className="mt-6 text-lg leading-relaxed text-surface-700/70">
-              UDAAN-SME gives you a suite of simple, connected digital tools.
-              Start with just invoicing or inventory, then add more modules as
-              your business grows. No complex ERP — just the tools you need, when you need them.
-            </p>
-          </div>
+        {/* CTA Section */}
+        <CTASection />
+      </main>
 
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {[
-              { icon: '🧩', title: 'Modular', desc: 'Pick only the tools you need. Start small, grow at your pace.' },
-              { icon: '⚡', title: 'Simple', desc: 'Designed for non-technical users. If you can use WhatsApp, you can use UDAAN.' },
-              { icon: '🇮🇳', title: 'Made for India', desc: 'GST, UPI, multi-language — built for how Indian SMEs actually work.' },
-            ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-green-100 bg-white p-6 text-center shadow-sm">
-                <span className="text-3xl">{item.icon}</span>
-                <h3 className="mt-3 text-base font-semibold text-surface-900">{item.title}</h3>
-                <p className="mt-1 text-sm text-surface-700/70">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="bg-white py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center mb-14">
-            <span className="inline-block rounded-full bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-600 mb-6">
-              Features
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-surface-900">
-              Everything You Need to Go Digital
-            </h2>
-            <p className="mt-4 text-lg text-surface-700/70">
-              Five powerful modules designed to replace your paper-based processes.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
-              <FeatureCard key={feature.title} {...feature} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <CTASection />
-    </>
+      <Footer />
+    </div>
   );
 }

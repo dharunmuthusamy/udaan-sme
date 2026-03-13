@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-surface-950 via-primary-950 to-surface-900 pt-28 pb-20 sm:pt-36 sm:pb-28">
+    <section id="home" className="relative overflow-hidden bg-gradient-to-br from-surface-950 via-primary-950 to-surface-900 pt-28 pb-20 sm:pt-36 sm:pb-28">
       {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary-500/10 blur-3xl" />
@@ -36,11 +36,11 @@ export default function HeroSection() {
         {/* CTA buttons */}
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            to="/demo"
-            id="hero-cta-demo"
+            to="/signup"
+            id="hero-cta-get-started"
             className="inline-flex items-center rounded-xl bg-gradient-to-r from-primary-500 to-accent-500 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30 hover:scale-[1.03] active:scale-[0.98] transition-all"
           >
-            Start Free Demo
+            Get Started
             <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>

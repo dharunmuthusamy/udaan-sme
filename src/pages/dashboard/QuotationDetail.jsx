@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { quotationService } from '../../services/quotationService';
 import { orderService } from '../../services/orderService';
+import BackButton from '../../components/Common/BackButton';
 
 export default function QuotationDetail() {
   const { quotationId } = useParams();
   const { businessData, user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   
   const [quotation, setQuotation] = useState(null);
@@ -61,20 +64,16 @@ export default function QuotationDetail() {
     }
   };
 
-  if (loading) return <div className="p-12 text-center animate-pulse">Loading quotation details...</div>;
-  if (!quotation) return <div className="p-12 text-center text-red-500 font-bold">Quotation not found.</div>;
+  if (loading) return <div className="p-12 text-center animate-pulse">{t('Loading...')}</div>;
+  if (!quotation) return <div className="p-12 text-center text-red-500 font-bold">{t('Quotation not found.')}</div>;
 
   return (
     <div className="max-w-4xl mx-auto anime-fade-in pb-20">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <Link to="/dashboard/sales/quotations" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
+          <BackButton />
           <div>
-            <h1 className="text-3xl font-black text-surface-900 tracking-tight">Quotation Details</h1>
+            <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Quotation Details')}</h1>
             <p className="text-surface-500 font-mono text-sm">QTN-{quotationId.slice(-6).toUpperCase()}</p>
           </div>
         </div>
@@ -85,7 +84,7 @@ export default function QuotationDetail() {
             disabled={converting}
             className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-50"
           >
-            {converting ? 'Converting...' : 'Convert to Order'}
+            {converting ? t('Converting...') : t('Convert to Order')}
           </button>
         )}
       </div>
@@ -93,21 +92,21 @@ export default function QuotationDetail() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-6">
           <div className="bg-white rounded-[2rem] border border-surface-200 p-8 shadow-sm">
-            <h2 className="font-bold text-surface-900 mb-6 flex items-center gap-2">Client Information</h2>
+            <h2 className="font-bold text-surface-900 mb-6 flex items-center gap-2">{t('Client Information')}</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs font-black uppercase text-surface-400 mb-1">Customer Name</p>
+                <p className="text-xs font-black uppercase text-surface-400 mb-1">{t('Customer Name')}</p>
                 <p className="font-bold text-surface-900">{quotation.customerName}</p>
               </div>
               <div>
-                <p className="text-xs font-black uppercase text-surface-400 mb-1">Quotation Date</p>
+                <p className="text-xs font-black uppercase text-surface-400 mb-1">{t('Quotation Date')}</p>
                 <p className="font-bold text-surface-900">{quotation.date}</p>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-[2rem] border border-surface-200 p-8 shadow-sm">
-            <h2 className="font-bold text-surface-900 mb-6 flex items-center gap-2">Items</h2>
+            <h2 className="font-bold text-surface-900 mb-6 flex items-center gap-2">{t('Items')}</h2>
             <div className="space-y-4">
               {quotation.products.map((item, idx) => (
                 <div key={idx} className="flex justify-between items-center p-4 bg-surface-50 rounded-2xl border border-surface-100">
@@ -124,14 +123,14 @@ export default function QuotationDetail() {
 
         <div className="space-y-6">
           <div className="bg-surface-900 rounded-[2rem] p-8 text-white shadow-xl">
-            <h2 className="font-bold text-lg mb-6 border-b border-white/10 pb-4">Quotation Summary</h2>
+            <h2 className="font-bold text-lg mb-6 border-b border-white/10 pb-4">{t('Quotation Summary')}</h2>
             <div className="space-y-4 text-sm font-bold">
               <div className="flex justify-between items-center opacity-60">
-                <span>Total Amount</span>
+                <span>{t('Total Amount')}</span>
                 <span className="text-xl font-black text-primary-400">₹{quotation.totalAmount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center opacity-60">
-                <span>Status</span>
+                <span>{t('Status')}</span>
                 <span className={`px-2 py-1 rounded-lg text-[10px] uppercase tracking-wider ${
                   quotation.status === 'Converted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
                 }`}>
@@ -140,7 +139,7 @@ export default function QuotationDetail() {
               </div>
               {quotation.orderId && (
                 <div className="pt-4 border-t border-white/10">
-                  <p className="text-[10px] opacity-40 uppercase mb-1">Linked Order</p>
+                  <p className="text-[10px] opacity-40 uppercase mb-1">{t('Linked Order')}</p>
                   <p className="text-xs font-mono text-primary-300">ORD-{quotation.orderId.slice(-6).toUpperCase()}</p>
                 </div>
               )}

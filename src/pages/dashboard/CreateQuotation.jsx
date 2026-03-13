@@ -5,6 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { customerService } from '../../services/customerService';
 import { productService } from '../../services/productService';
 import { quotationService } from '../../services/quotationService';
+import BackButton from '../../components/Common/BackButton';
 import SearchableDropdown from '../../components/Common/SearchableDropdown';
 import ProductRow from '../../components/Dashboard/ProductRow';
 
@@ -160,11 +161,7 @@ export default function CreateQuotation() {
   return (
     <div className="max-w-5xl mx-auto anime-fade-in pb-20">
       <div className="flex items-center gap-4 mb-8">
-        <Link to="/dashboard/sales/quotations" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </Link>
+        <BackButton />
         <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Create Quotation')}</h1>
       </div>
 

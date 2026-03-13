@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useLanguage } from '../../../context/LanguageContext';
 import { getBusinessUsers, updateUserRole, updateUserStatus } from '../../../services/dbService';
+import BackButton from '../../../components/Common/BackButton';
 
 export default function UserManagement() {
   const { t } = useLanguage();
@@ -63,7 +64,10 @@ export default function UserManagement() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-surface-900">{t('User Management')}</h1>
+        <div className="flex items-center gap-4">
+          <BackButton />
+          <h1 className="text-2xl font-black text-surface-900">{t('User Management')}</h1>
+        </div>
       </div>
 
       {error && (

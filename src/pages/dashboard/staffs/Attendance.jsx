@@ -4,6 +4,7 @@ import { useLanguage } from '../../../context/LanguageContext';
 import { attendanceService } from '../../../services/attendanceService';
 import { getBusinessUsers } from '../../../services/dbService';
 import SearchableDropdown from '../../../components/Common/SearchableDropdown';
+import BackButton from '../../../components/Common/BackButton';
 import { formatDuration } from '../../../utils/dateUtils';
 
 export default function Attendance() {
@@ -112,6 +113,10 @@ export default function Attendance() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-20">
+      <div className="flex items-center gap-4">
+        <BackButton />
+        <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Attendance')}</h1>
+      </div>
       {/* Action Header */}
       {!isOwner && (
         <div className="bg-white rounded-[2.5rem] border border-surface-200 p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">

@@ -92,6 +92,14 @@ export function AuthProvider({ children }) {
     setBusinessData(null);
   }
 
+  const isPremium = businessData?.subscriptionPlan === 'premium';
+
+  const checkFeatureLimit = useCallback((metric, currentCount) => {
+    const { isLimitReached } = require('../utils/subscriptionUtils');
+    const plan = businessData?.subscriptionPlan || 'free';
+    return isLimitReached(plan, metric, currentCount);
+  }, [businessData]);
+
   const value = {
     user,
     userData,
@@ -101,6 +109,8 @@ export function AuthProvider({ children }) {
     login,
     logout,
     joinBusiness,
+    isPremium,
+    checkFeatureLimit
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

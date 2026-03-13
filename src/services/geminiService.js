@@ -133,13 +133,15 @@ export const sendChatMessage = async (chatSession, userMessage, language = 'en')
       errorStr.includes('limit') || 
       errorStr.includes('resource_exhausted');
 
+    const localResponse = getLocalResponse(userMessage);
+
     if (isRateLimited) {
       console.warn('[Firebase AI] Rate limit or quota exceeded detected.');
-      const localResponse = getLocalResponse(userMessage);
       if (localResponse) return `${localResponse} (Note: Running in offline mode due to high service load.)`;
-      throw new Error('AI assistant is under high load (Quota Exceeded). Please try again in a moment.');
+      return "I'm currently experiencing high load and can't process complex queries right now. However, I can still answer basic questions about UDAAN-SME, like 'how to add a product' or 'how to manage staff'.";
     }
     
-    throw new Error('AI assistant is temporarily unavailable. Please try again.');
+    if (localResponse) return `${localResponse} (Note: Running in offline mode due to a temporary connection issue.)`;
+    return "I'm temporarily unavailable to answer complex queries right now. I can currently help with basic questions like 'What is UDAAN-SME?' or 'How to create an invoice?'. Please try again later.";
   }
 };

@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { invoiceService } from '../../services/invoiceService';
+import BackButton from '../../components/Common/BackButton';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 export default function InvoiceDetail() {
   const { invoiceId } = useParams();
   const { businessData } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,8 +122,8 @@ export default function InvoiceDetail() {
     window.print();
   };
 
-  if (loading) return <div className="p-12 text-center animate-pulse">Retrieving document...</div>;
-  if (!invoice) return <div className="p-12 text-center">Invoice not found.</div>;
+  if (loading) return <div className="p-12 text-center animate-pulse">{t('Loading...')}</div>;
+  if (!invoice) return <div className="p-12 text-center">{t('Invoice not found.')}</div>;
 
   const subtotal = invoice.products.reduce((sum, p) => sum + p.subtotal, 0);
 
@@ -147,13 +150,9 @@ export default function InvoiceDetail() {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 no-print">
         <div className="flex items-center gap-4">
-          <Link to="/dashboard/sales" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
+          <BackButton />
           <div>
-            <h1 className="text-3xl font-black text-surface-900 tracking-tight">Invoice Details</h1>
+            <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Invoice Details')}</h1>
             <p className="text-surface-500 font-bold font-mono uppercase text-xs">#{invoice.id.toUpperCase()}</p>
           </div>
         </div>
@@ -165,7 +164,7 @@ export default function InvoiceDetail() {
               disabled={updating}
               className="px-6 py-3 rounded-xl bg-emerald-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50"
             >
-              Mark as Paid
+              {t('Mark as Paid')}
             </button>
           )}
 
@@ -187,7 +186,7 @@ export default function InvoiceDetail() {
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            {downloading ? 'Generating...' : 'Download PDF'}
+            {downloading ? t('Generating...') : t('Download PDF')}
           </button>
         </div>
       </div>

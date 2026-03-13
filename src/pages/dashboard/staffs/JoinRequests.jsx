@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { getJoinRequests, approveJoinRequest, rejectJoinRequest } from '../../../services/dbService';
+import { useLanguage } from '../../../context/LanguageContext';
+import { getJoinRequests, approveJoinRequest, rejectJoinRequest, incrementCounter } from '../../../services/dbService';
 import { Link } from 'react-router-dom';
+import BackButton from '../../../components/Common/BackButton';
+import UpgradeModal from '../../../components/Dashboard/UpgradeModal';
 
 export default function JoinRequests() {
   const { userData } = useAuth();
+  const { t } = useLanguage();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null); // requestId being acted on
   const [filter, setFilter] = useState('pending'); // pending | approved | rejected
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { businessData, checkFeatureLimit } = useAuth();
 
   const isOwner = userData?.role === 'owner';
   const businessId = userData?.businessId;
@@ -31,9 +37,16 @@ export default function JoinRequests() {
   }
 
   async function handleApprove(request) {
+    if (checkFeatureLimit('staff', businessData?.staffCount || 0)) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     setActionLoading(request.requestId);
     try {
       await approveJoinRequest(request);
+      // Increment counter
+      await incrementCounter('businesses', businessId, 'staffCount', 1);
       setRequests((prev) => prev.filter((r) => r.requestId !== request.requestId));
     } catch (err) {
       console.error('[JoinRequests] Approve failed:', err);
@@ -100,11 +113,7 @@ export default function JoinRequests() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Link to="/dashboard/settings" className="text-surface-400 hover:text-primary-600 transition-colors">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
+            <BackButton />
             <h1 className="text-2xl font-bold text-surface-900">Join Requests</h1>
           </div>
           <p className="text-sm text-surface-500 ml-7">Review and manage requests from people wanting to join your business</p>
@@ -116,7 +125,7 @@ export default function JoinRequests() {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          Refresh
+          {t('Refresh')}
         </button>
       </div>
 
@@ -131,7 +140,7 @@ export default function JoinRequests() {
               : 'text-surface-500 hover:text-surface-700'
             }`}
           >
-            {status}
+            {t(status)}
           </button>
         ))}
       </div>
@@ -151,21 +160,21 @@ export default function JoinRequests() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
             </svg>
           </div>
-          <h3 className="text-base font-bold text-surface-900">No {filter} requests</h3>
+          <h3 className="text-base font-bold text-surface-900">{filter === 'pending' ? t('No pending requests') : filter === 'approved' ? t('No approved requests') : t('No rejected requests')}</h3>
           <p className="text-sm text-surface-500 mt-1">
             {filter === 'pending'
-              ? 'When someone requests to join your business, it will appear here.'
-              : `No ${filter} requests found.`}
+              ? t('When someone requests to join your business, it will appear here.')
+              : t('No requests found for this status.')}
           </p>
         </div>
       ) : (
         <div className="rounded-2xl border border-surface-200 bg-white overflow-hidden">
           {/* Table header */}
           <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-surface-50 border-b border-surface-200 text-xs font-bold uppercase tracking-wider text-surface-500">
-            <div className="col-span-4">Staff Name & Contact</div>
-            <div className="col-span-3">Requested Role</div>
-            <div className="col-span-2">Status</div>
-            <div className="col-span-3 text-right">{filter === 'pending' ? 'Actions' : ''}</div>
+            <div className="col-span-4">{t('Staff Name & Contact')}</div>
+            <div className="col-span-3">{t('Requested Role')}</div>
+            <div className="col-span-2">{t('Status')}</div>
+            <div className="col-span-3 text-right">{filter === 'pending' ? t('Actions') : ''}</div>
           </div>
 
           {/* Rows */}
@@ -185,7 +194,7 @@ export default function JoinRequests() {
               </div>
               <div className="col-span-2">
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border capitalize ${statusBadge[req.status]}`}>
-                  {req.status}
+                  {t(req.status)}
                 </span>
               </div>
               <div className="col-span-3 flex items-center justify-end gap-2">
@@ -199,7 +208,7 @@ export default function JoinRequests() {
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                      Approve
+                      {t('Approve')}
                     </button>
                     <button
                       onClick={() => handleReject(req.requestId)}
@@ -209,7 +218,7 @@ export default function JoinRequests() {
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
-                      Reject
+                      {t('Reject')}
                     </button>
                   </>
                 )}
@@ -218,6 +227,12 @@ export default function JoinRequests() {
           ))}
         </div>
       )}
+
+      <UpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)}
+        message={t('You have reached the limit of 3 staff members on the Free plan. Upgrade to Premium to manage a larger team.')}
+      />
     </div>
   );
 }

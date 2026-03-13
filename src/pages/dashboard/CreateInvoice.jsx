@@ -6,9 +6,12 @@ import { customerService } from '../../services/customerService';
 import { productService } from '../../services/productService';
 import { invoiceService } from '../../services/invoiceService';
 import { orderService } from '../../services/orderService';
+import BackButton from '../../components/Common/BackButton';
 import SearchableDropdown from '../../components/Common/SearchableDropdown';
 import ProductRow from '../../components/Dashboard/ProductRow';
 import { useLocation } from 'react-router-dom';
+import UpgradeModal from '../../components/Dashboard/UpgradeModal';
+import { incrementCounter } from '../../services/dbService';
 
 export default function CreateInvoice() {
   const { businessData, user } = useAuth();
@@ -23,6 +26,8 @@ export default function CreateInvoice() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { checkFeatureLimit } = useAuth();
 
   const [form, setForm] = useState(() => {
     const saved = sessionStorage.getItem('create_invoice_form');
@@ -214,6 +219,11 @@ export default function CreateInvoice() {
     if (!form.customerId) return setError('Please select a customer.');
     if (form.rows.some(r => !r.productId)) return setError('Please select products for all rows.');
     
+    if (checkFeatureLimit('invoicesPerMonth', businessData?.invoiceCountThisMonth || 0)) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     setSaving(true);
     setError('');
 
@@ -237,6 +247,10 @@ export default function CreateInvoice() {
       };
 
       await invoiceService.create(businessData.id, invoiceData);
+      
+      // Increment counter
+      await incrementCounter('businesses', businessData.id, 'invoiceCountThisMonth', 1);
+      
       sessionStorage.removeItem('create_invoice_form');
       navigate('/dashboard/sales');
     } catch (err) {
@@ -252,12 +266,10 @@ export default function CreateInvoice() {
   return (
     <div className="max-w-5xl mx-auto anime-fade-in pb-20">
       <div className="flex items-center gap-4 mb-8">
-        <Link to="/dashboard/sales" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </Link>
-        <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Create Invoice')}</h1>
+        <BackButton />
+        <h1 className="text-3xl font-black text-surface-900 tracking-tight">
+          {orderId ? 'Convert Order to Invoice' : 'Create New Invoice'}
+        </h1>
         {orderId && (
           <span className="ml-4 px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-xs font-mono font-bold">
             ORD-{orderId.slice(-6).toUpperCase()}
@@ -464,6 +476,12 @@ export default function CreateInvoice() {
           </div>
         </div>
       </form>
+
+      <UpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)}
+        message={t('You have reached the monthly limit of 50 invoices on the Free plan. Upgrade to Premium to create unlimited invoices.')}
+      />
     </div>
   );
 }

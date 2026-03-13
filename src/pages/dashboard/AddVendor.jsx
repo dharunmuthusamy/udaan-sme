@@ -3,10 +3,13 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { vendorService } from '../../services/vendorService';
+import BackButton from '../../components/Common/BackButton';
 
 export default function AddVendor() {
   const { businessData } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -82,18 +85,14 @@ export default function AddVendor() {
   return (
     <div className="max-w-2xl mx-auto anime-fade-in pb-20">
       <div className="flex items-center gap-4 mb-8">
-        <Link to="/dashboard/purchases/vendors" className="p-2 lg:p-3 rounded-2xl bg-white border border-surface-200 text-surface-400 hover:text-primary-600 transition-all shadow-sm">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </Link>
-        <h1 className="text-3xl font-black text-surface-900 tracking-tight">Add New Vendor</h1>
+        <BackButton />
+        <h1 className="text-3xl font-black text-surface-900 tracking-tight">{t('Add New Vendor')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-[2rem] border border-surface-200 shadow-sm">
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Vendor Name *</label>
+            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">{t('Vendor Name')} *</label>
             <input
               type="text"
               required
@@ -110,7 +109,7 @@ export default function AddVendor() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Phone Number *</label>
+              <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">{t('Phone Number')} *</label>
               <input
                 type="tel"
                 required
@@ -131,7 +130,7 @@ export default function AddVendor() {
           </div>
 
           <div>
-            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">Address *</label>
+            <label className="text-xs font-black uppercase text-surface-400 mb-2 block ml-1">{t('Address')} *</label>
             <textarea
               rows={3}
               required
@@ -162,7 +161,7 @@ export default function AddVendor() {
             disabled={loading || !isFormValid}
             className="w-full rounded-2xl bg-primary-600 px-8 py-4 text-sm font-black text-white shadow-xl shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:translate-y-0"
           >
-            {loading ? 'Creating Vendor...' : 'Create Vendor'}
+            {loading ? t('Creating Vendor...') : t('Create Vendor')}
           </button>
         </div>
       </form>

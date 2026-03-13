@@ -49,6 +49,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
+import PremiumProtectedRoute from './components/PremiumProtectedRoute';
 import DashboardLayout from './components/Dashboard/DashboardLayout';
 
 function StaffsIndexRedirect() {
@@ -72,8 +73,6 @@ function LayoutWrapper() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/pricing" element={<Pricing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           
@@ -122,7 +121,13 @@ function LayoutWrapper() {
               <Route path="attendance" element={<Attendance />} />
             </Route>
 
-            <Route path="analytics" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><Analytics /></RoleProtectedRoute>} />
+            <Route path="analytics" element={
+              <RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}>
+                <PremiumProtectedRoute>
+                  <Analytics />
+                </PremiumProtectedRoute>
+              </RoleProtectedRoute>
+            } />
             <Route path="business" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><BusinessProfile /></RoleProtectedRoute>} />
             <Route path="profile" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><UserProfile /></RoleProtectedRoute>} />
             <Route path="help" element={<HelpCenter />} />

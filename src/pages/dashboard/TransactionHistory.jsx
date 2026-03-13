@@ -5,6 +5,7 @@ import { invoiceService } from '../../services/invoiceService';
 import { purchaseService } from '../../services/purchaseService';
 import { vendorService } from '../../services/vendorService';
 import { customerService } from '../../services/customerService';
+import BackButton from '../../components/Common/BackButton';
 
 export default function TransactionHistory() {
   const { businessData } = useAuth();
@@ -43,9 +44,9 @@ export default function TransactionHistory() {
 
       const formattedInvoices = invoices.map(inv => ({
         id: inv.id,
-        date: inv.date || inv.invoiceDate || inv.quotationDate || 'N/A',
+        date: inv.date || inv.invoiceDate || inv.quotationDate || t('N/A'),
         type: 'Sale',
-        entity: inv.customerName || 'Walk-in Customer',
+        entity: inv.customerName || t('Walk-in Customer'),
         entityId: inv.customerId || null,
         amount: inv.totalAmount || 0,
         status: inv.status || 'Paid',
@@ -54,9 +55,9 @@ export default function TransactionHistory() {
 
       const formattedPurchases = purchases.map(pur => ({
         id: pur.id,
-        date: pur.date || pur.purchaseDate || 'N/A',
+        date: pur.date || pur.purchaseDate || t('N/A'),
         type: 'Purchase',
-        entity: pur.vendorName || 'Unknown Vendor',
+        entity: pur.vendorName || t('Unknown Vendor'),
         entityId: pur.vendorId || null,
         amount: pur.price * pur.quantity,
         status: 'Completed',
@@ -110,15 +111,18 @@ export default function TransactionHistory() {
 
   // Determine what entities to show in the dropdown based on activeType
   const entityOptions = activeFilter === 'Sale' ? customers : activeFilter === 'Purchase' ? vendors : [];
-  const entityLabel = activeFilter === 'Sale' ? 'Customer' : activeFilter === 'Purchase' ? 'Vendor' : 'Customer/Vendor';
+  const entityLabel = activeFilter === 'Sale' ? 'Customer' : activeFilter === 'Purchase' ? 'Vendor' : 'Customer / Vendor';
 
   const filters = ['All', 'Sale', 'Purchase'];
 
   return (
     <div className="max-w-6xl mx-auto anime-fade-in pb-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-surface-900 tracking-tight mb-2">{t('Transaction History')}</h1>
-        <p className="text-surface-500 font-medium">{t('Unified view of all sales and purchase activities.')}</p>
+      <div className="flex items-center gap-4 mb-8">
+        <BackButton />
+        <div>
+          <h1 className="text-3xl font-black text-surface-900 tracking-tight mb-1">{t('Transaction History')}</h1>
+          <p className="text-surface-500 font-medium">{t('Unified view of all sales and purchase activities.')}</p>
+        </div>
       </div>
 
       <div className="bg-white rounded-[2rem] border border-surface-200 shadow-sm overflow-hidden p-6 mb-8">
@@ -230,7 +234,7 @@ export default function TransactionHistory() {
                 filteredTransactions.map((tx) => (
                   <tr key={tx.id} className="hover:bg-surface-50/50 transition-colors">
                     <td className="px-6 py-4 text-sm font-bold text-surface-600">
-                      {tx.date || 'N/A'}
+                      {tx.date || t('N/A')}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${

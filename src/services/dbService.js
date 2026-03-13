@@ -89,7 +89,14 @@ export async function createWorkspace(userId, name, phone, businessName, whatsap
       shopImage,
       ownerId: userId,
       createdAt: serverTimestamp(),
-      subscriptionPlan: 'starter',
+      subscriptionPlan: 'free',
+      planStartDate: serverTimestamp(),
+      planExpiryDate: null, // Unlimited for free? Or 1 month rolling?
+      invoiceCountThisMonth: 0,
+      productCount: 0,
+      customerCount: 0,
+      staffCount: 0,
+      lastCountResetDate: serverTimestamp(),
     });
   }
 
@@ -114,6 +121,17 @@ export async function createWorkspace(userId, name, phone, businessName, whatsap
 export async function updateUserProfile(userId, data) {
   ensureDb();
   await setDoc(doc(db, 'users', userId), data, { merge: true });
+}
+
+/**
+ * Generic function to increment a counter in business or user document
+ */
+export async function incrementCounter(collectionName, docId, field, amount = 1) {
+  ensureDb();
+  const { increment } = await import('firebase/firestore');
+  await updateDoc(doc(db, collectionName, docId), {
+    [field]: increment(amount)
+  });
 }
 
 /**

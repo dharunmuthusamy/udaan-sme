@@ -10,9 +10,9 @@ export default function Demo() {
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-surface-900">
           Try UDAAN-SME — Free Demo
         </h1>
-        <p className="mt-4 text-lg text-surface-700/70 max-w-2xl mx-auto">
-          The interactive demo dashboard is being built. Soon you'll be able to
-          explore invoicing, inventory, CRM, and more — no signup required.
+        <p className="text-surface-500 font-medium mb-10 leading-relaxed">
+          The interactive demo environment is being updated. 
+          Create your own account to see how UDAAN-SME transforms your business data into actionable insights!
         </p>
         <div className="mt-10 rounded-2xl border-2 border-dashed border-surface-200 bg-white p-12 text-surface-700/40 text-sm">
           Demo Dashboard will be rendered here

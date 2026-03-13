@@ -1,15 +1,24 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useLanguage } from '../../../context/LanguageContext';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function StaffsLayout() {
   const { t } = useLanguage();
+  const { userData } = useAuth();
 
   const tabs = [
-    { name: 'User Management', path: 'users' },
-    { name: 'Join Requests', path: 'join-requests' },
+    { name: 'User Management', path: 'users', roles: ['owner'] },
+    { name: 'Join Requests', path: 'join-requests', roles: ['owner'] },
     { name: 'Tasks', path: 'tasks' },
     { name: 'Attendance', path: 'attendance' },
   ];
+
+  const visibleTabs = tabs.filter(tab => {
+    if (tab.roles && (!userData || !tab.roles.includes(userData.role))) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="max-w-6xl mx-auto anime-fade-in pb-10">
@@ -20,7 +29,7 @@ export default function StaffsLayout() {
 
       {/* Tabs */}
       <div className="flex items-center gap-1 p-1 bg-surface-100 rounded-2xl mb-8 w-fit overflow-x-auto">
-        {tabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <NavLink
             key={tab.path}
             to={tab.path}

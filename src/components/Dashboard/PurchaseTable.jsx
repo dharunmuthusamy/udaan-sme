@@ -1,4 +1,5 @@
 import { useLanguage } from '../../context/LanguageContext';
+import { formatDateOnly, formatTimeOnly } from '../../utils/dateUtils';
 
 export default function PurchaseTable({ purchases }) {
   const { t } = useLanguage();
@@ -22,6 +23,7 @@ export default function PurchaseTable({ purchases }) {
           <thead>
             <tr className="bg-surface-50/50 border-b border-surface-200">
               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-surface-400">{t('Date')}</th>
+              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-surface-400">{t('Time')}</th>
               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-surface-400">{t('Vendor')}</th>
               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-surface-400">{t('Product')}</th>
               <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-surface-400 text-right">{t('Quantity')}</th>
@@ -33,7 +35,10 @@ export default function PurchaseTable({ purchases }) {
             {purchases.map((purchase) => (
               <tr key={purchase.id} className="hover:bg-surface-50/50 transition-colors group">
                 <td className="px-6 py-4 text-sm font-bold text-surface-900">
-                  {new Date(purchase.date || purchase.purchaseDate).toLocaleDateString()}
+                  {formatDateOnly(purchase.createdAt || purchase.date || purchase.purchaseDate)}
+                </td>
+                <td className="px-6 py-4 text-sm font-bold text-surface-500 font-mono">
+                  {formatTimeOnly(purchase.createdAt || purchase.date || purchase.purchaseDate)}
                 </td>
                 <td className="px-6 py-4">
                   <p className="font-bold text-surface-900">{purchase.vendorName}</p>

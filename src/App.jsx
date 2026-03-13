@@ -26,7 +26,6 @@ import AddCustomer from './pages/dashboard/AddCustomer';
 import Tasks from './pages/dashboard/staffs/Tasks';
 import CreateTask from './pages/dashboard/staffs/CreateTask';
 import Analytics from './pages/dashboard/Analytics';
-import Settings from './pages/dashboard/Settings';
 import Onboarding from './pages/dashboard/Onboarding';
 import Quotations from './pages/dashboard/Quotations';
 import CreateQuotation from './pages/dashboard/CreateQuotation';
@@ -55,9 +54,8 @@ function StaffsIndexRedirect() {
   const { userData, loading } = useAuth();
   if (loading) return null;
   if (!userData) return <Navigate to="/dashboard" replace />;
-  // Owners and Accountants can see Users and Join Requests.
-  const isManager = ['owner', 'accountant'].includes(userData.role);
-  if (isManager) return <Navigate to="users" replace />;
+  // Only Owners can see Users and Join Requests.
+  if (userData.role === 'owner') return <Navigate to="users" replace />;
   // Everyone else goes to Tasks
   return <Navigate to="tasks" replace />;
 }
@@ -107,12 +105,12 @@ function LayoutWrapper() {
               <Route path="records" element={<Purchases />} />
             </Route>
 
-            <Route path="purchases/vendors/add" element={<RoleProtectedRoute allowedRoles={['owner', 'storekeeper']}><AddVendor /></RoleProtectedRoute>} />
-            <Route path="purchases/records/record" element={<RoleProtectedRoute allowedRoles={['owner', 'storekeeper']}><RecordPurchase /></RoleProtectedRoute>} />
+            <Route path="purchases/vendors/add" element={<RoleProtectedRoute allowedRoles={['owner', 'storekeeper', 'accountant']}><AddVendor /></RoleProtectedRoute>} />
+            <Route path="purchases/records/record" element={<RoleProtectedRoute allowedRoles={['owner', 'storekeeper', 'accountant']}><RecordPurchase /></RoleProtectedRoute>} />
             
-            <Route path="transactions" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant']}><TransactionHistory /></RoleProtectedRoute>} />
-            <Route path="crm" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant']}><CRM /></RoleProtectedRoute>} />
-            <Route path="crm/add" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant']}><AddCustomer /></RoleProtectedRoute>} />
+            <Route path="transactions" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper']}><TransactionHistory /></RoleProtectedRoute>} />
+            <Route path="crm" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper']}><CRM /></RoleProtectedRoute>} />
+            <Route path="crm/add" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper']}><AddCustomer /></RoleProtectedRoute>} />
 
             <Route path="staffs" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><StaffsLayout /></RoleProtectedRoute>}>
               <Route index element={<StaffsIndexRedirect />} />
@@ -124,8 +122,7 @@ function LayoutWrapper() {
             </Route>
 
             <Route path="analytics" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant']}><Analytics /></RoleProtectedRoute>} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="settings/business" element={<RoleProtectedRoute allowedRoles={['owner']}><BusinessProfile /></RoleProtectedRoute>} />
+            <Route path="business" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><BusinessProfile /></RoleProtectedRoute>} />
             <Route path="help" element={<HelpCenter />} />
           </Route>
         </Routes>

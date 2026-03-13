@@ -58,7 +58,7 @@ export async function uploadFile(path, file) {
  * Generates a unique businessId automatically.
  * @returns {{ businessId: string }}
  */
-export async function createWorkspace(userId, name, phone, businessName, whatsappNumber, location, shopImageFile, role = 'owner') {
+export async function createWorkspace(userId, name, phone, businessName, whatsappNumber, location, latitude, longitude, shopImageFile, role = 'owner') {
   ensureDb();
 
   let businessId = '';
@@ -84,6 +84,8 @@ export async function createWorkspace(userId, name, phone, businessName, whatsap
       businessId,
       businessName,
       location: location || '',
+      latitude,
+      longitude,
       shopImage,
       ownerId: userId,
       createdAt: serverTimestamp(),
@@ -94,12 +96,12 @@ export async function createWorkspace(userId, name, phone, businessName, whatsap
   // Create user profile document
   await setDoc(doc(db, 'users', userId), {
     userId,
-    name,
+    fullName: name, // Aligning with joinBusiness which uses fullName
     phone,
     whatsappNumber: whatsappNumber || phone,
     role,
     businessId,
-    setupCompleted: role !== 'owner',
+    setupCompleted: false, // Owners need to do setup too
     createdAt: serverTimestamp(),
   });
 

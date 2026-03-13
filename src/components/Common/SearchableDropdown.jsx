@@ -1,10 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs 
-} from 'firebase/firestore';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
 import { vendorService } from '../../services/vendorService';
 import { customerService } from '../../services/customerService';
@@ -19,8 +15,11 @@ export default function SearchableDropdown({
   options, 
   businessId, 
   placeholder = "Select...",
-  required = false
+  required = false,
+  rowIndex = null // For products in tables
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -168,7 +167,25 @@ export default function SearchableDropdown({
               <div 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowModal(true);
+                  if (type === 'customer' || type === 'product' || type === 'vendor') {
+                    // For customers and products, we navigate. Vendors use modal for now or we can also navigate.
+                    // User requested CRM/Add and Inventory/Add specifically.
+                    let target = '';
+                    if (type === 'customer') target = '/dashboard/crm/add';
+                    if (type === 'product') target = '/dashboard/inventory/add';
+                    if (type === 'vendor') target = '/dashboard/purchases/vendors/add';
+
+                    if (target) {
+                      const redirectUrl = encodeURIComponent(location.pathname + location.search);
+                      let finalTarget = `${target}?redirect=${redirectUrl}`;
+                      if (rowIndex !== null) finalTarget += `&rowIndex=${rowIndex}`;
+                      navigate(finalTarget);
+                    } else {
+                      setShowModal(true);
+                    }
+                  } else {
+                    setShowModal(true);
+                  }
                   setIsOpen(false);
                 }}
                 className="px-4 py-3 text-sm font-black text-primary-600 cursor-pointer hover:bg-primary-50 border-b border-surface-50 flex items-center gap-2"

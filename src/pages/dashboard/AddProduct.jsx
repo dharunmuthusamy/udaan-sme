@@ -1,11 +1,16 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { productService } from '../../services/productService';
 
 export default function AddProduct() {
   const { businessData, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const redirect = queryParams.get('redirect');
+  const rowIndex = queryParams.get('rowIndex');
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -44,13 +49,21 @@ export default function AddProduct() {
     setSaving(true);
     setError('');
     try {
-      await productService.create(businessData.id, {
+      const newItem = await productService.create(businessData.id, {
         ...form,
         price: parseFloat(form.price),
         stockQuantity: parseInt(form.stockQuantity),
         createdBy: user.uid
       });
-      navigate('/dashboard/inventory');
+      
+      if (redirect) {
+        const decodedRedirect = decodeURIComponent(redirect);
+        const separator = decodedRedirect.includes('?') ? '&' : '?';
+        const finalUrl = `${decodedRedirect}${separator}newProductId=${newItem.id}${rowIndex !== null ? `&rowIndex=${rowIndex}` : ''}`;
+        navigate(finalUrl);
+      } else {
+        navigate('/dashboard/inventory');
+      }
     } catch (err) {
       console.error('[AddProduct] Error:', err);
       setError(`Failed to create product: ${err.message}`);

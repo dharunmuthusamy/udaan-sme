@@ -47,9 +47,9 @@ export function AuthProvider({ children }) {
 
   // ─── Auth actions ───
 
-  async function signup(phone, password, fullName, businessName, whatsappNumber, location, shopImageFile, role) {
+  async function signup(phone, password, fullName, businessName, whatsappNumber, location, latitude, longitude, shopImageFile, role) {
     const firebaseUser = await authSignUp(phone, password, fullName);
-    const { businessId } = await createWorkspace(firebaseUser.uid, fullName, phone, businessName, whatsappNumber, location, shopImageFile, role);
+    const { businessId } = await createWorkspace(firebaseUser.uid, fullName, phone, businessName, whatsappNumber, location, latitude, longitude, shopImageFile, role);
     await loadProfile(firebaseUser);
     return { user: firebaseUser, businessId, isNewBusiness: role === 'owner' };
   }

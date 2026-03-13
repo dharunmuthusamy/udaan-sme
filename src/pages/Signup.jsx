@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getCurrentLocation, reverseGeocode } from '../services/locationService';
 
 const JOIN_ROLES = [
   { value: 'accountant', label: 'Accountant' },
@@ -21,6 +22,8 @@ export default function Signup() {
     fullName: '',
     businessName: '',
     location: '',
+    latitude: null,
+    longitude: null,
     phone: '',
     whatsappNumber: '',
     password: '',
@@ -43,6 +46,7 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -84,6 +88,27 @@ export default function Signup() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
+  // ─── Location Detection ───
+  async function handleDetectLocation() {
+    setError('');
+    setDetectingLocation(true);
+    try {
+      const coords = await getCurrentLocation();
+      const address = await reverseGeocode(coords.latitude, coords.longitude);
+      setForm((prev) => ({
+        ...prev,
+        location: address,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      }));
+    } catch (err) {
+      console.error('[Signup] Location detection failed:', err);
+      setError(err.message || 'Failed to detect location. Please enter manually.');
+    } finally {
+      setDetectingLocation(false);
+    }
+  }
+
   // ─── Create Business Submit ───
   async function handleCreateSubmit(e) {
     e.preventDefault();
@@ -100,19 +125,10 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const { user, businessId, isNewBusiness } = await signup(
+      await signup(
         digits, form.password, form.fullName, form.businessName,
-        waDigits, form.location, shopPhoto, 'owner'
+        waDigits, form.location, form.latitude, form.longitude, shopPhoto, 'owner'
       );
-
-      if (isNewBusiness) {
-        try {
-          const { demoDataService } = await import('../services/demoDataService');
-          await demoDataService.generateDemoContent(businessId);
-        } catch (demoError) {
-          console.warn('Demo data generation failed, skipping...', demoError);
-        }
-      }
 
       navigate('/dashboard');
     } catch (err) {
@@ -237,8 +253,31 @@ export default function Signup() {
                   <input id="businessName" name="businessName" type="text" value={form.businessName} onChange={handleChange} placeholder="Kumar Enterprises" className={inputClass} />
                 </div>
                 <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-surface-700 mb-1.5">Location</label>
-                  <input id="location" name="location" type="text" value={form.location} onChange={handleChange} placeholder="T. Nagar, Chennai" className={inputClass} />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label htmlFor="location" className="block text-sm font-medium text-surface-700">Business Location</label>
+                    <button
+                      type="button"
+                      onClick={handleDetectLocation}
+                      disabled={detectingLocation}
+                      className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {detectingLocation ? (
+                        <>
+                          <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                          Detecting...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Detect Location
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <input id="location" name="location" type="text" value={form.location} onChange={handleChange} placeholder="Enter shop address or area" className={inputClass} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-surface-700 mb-1.5">

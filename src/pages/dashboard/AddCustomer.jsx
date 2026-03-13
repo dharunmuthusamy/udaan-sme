@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { customerService } from '../../services/customerService';
 
 export default function AddCustomer() {
   const { businessData, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const redirect = queryParams.get('redirect');
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,11 +29,19 @@ export default function AddCustomer() {
 
     setSaving(true);
     try {
-      await customerService.create(businessData.id, {
+      const newItem = await customerService.create(businessData.id, {
         ...form,
         createdBy: user.uid
       });
-      navigate('/dashboard/crm');
+      
+      if (redirect) {
+        const decodedRedirect = decodeURIComponent(redirect);
+        const separator = decodedRedirect.includes('?') ? '&' : '?';
+        const finalUrl = `${decodedRedirect}${separator}newCustomerId=${newItem.id}`;
+        navigate(finalUrl);
+      } else {
+        navigate('/dashboard/crm');
+      }
     } catch (err) {
       console.error('[AddCustomer] Error:', err);
       setError(`Failed to create customer: ${err.message}`);

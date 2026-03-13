@@ -8,7 +8,7 @@ import StatCard from '../components/Dashboard/StatCard';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { user, profile, businessData } = useAuth();
+  const { user, userData, businessData } = useAuth();
   const { t } = useLanguage();
   const [stats, setStats] = useState({
     totalSales: 0,
@@ -20,12 +20,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Only stop loading if we've determined we definitely don't have business data
+    // or we've started loading it.
     if (businessData?.id) {
       loadDashboardStats();
-    } else {
-      setLoading(false);
+    } else if (businessData === null && userData) {
+       // If businessData is explicitly null (not just undefined/loading) 
+       // but we have userData, we might not be an owner or data is missing
+       setLoading(false);
     }
-  }, [businessData]);
+  }, [businessData, userData]);
 
   async function loadDashboardStats() {
     try {
@@ -53,6 +57,17 @@ export default function Dashboard() {
     }
   }
 
+  if (loading || (userData && userData.role === 'owner' && !businessData)) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="relative flex flex-col items-center">
+          <div className="h-16 w-16 animate-spin rounded-full border-4 border-surface-100 border-t-primary-600"></div>
+          <p className="mt-4 text-sm font-bold text-surface-400 animate-pulse">{t('Loading dashboard statistics...')}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-10 anime-fade-in">
       {/* Welcome Header */}
@@ -62,7 +77,7 @@ export default function Dashboard() {
             {t('Business Overview')}
           </span>
           <h1 className="text-4xl font-black text-surface-900 tracking-tight flex items-center gap-3">
-            {t('Hello')}, {profile?.firstName || 'Business Owner'} 
+            {t('Hello')}, {userData?.fullName || userData?.name || 'Business Owner'} 
             <span className="hidden md:inline animate-wave">👋</span>
           </h1>
           <p className="text-surface-500 font-medium mt-1">{t('Here is whats happening at')} <span className="font-bold text-surface-700 italic">{businessData?.businessName}</span> {t('today')}.</p>

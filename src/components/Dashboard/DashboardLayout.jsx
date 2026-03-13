@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import Sidebar from './Sidebar';
@@ -69,12 +69,16 @@ export default function DashboardLayout() {
               </svg>
               <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
             </button>
-            <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-primary-100 bg-primary-50">
+            <Link
+              to="/dashboard/business"
+              className="h-10 w-10 overflow-hidden rounded-full border-2 border-primary-100 bg-primary-50 hover:ring-2 hover:ring-primary-400 transition-all"
+              title="Business Profile"
+            >
               {/* User Avatar */}
               <div className="h-full w-full flex items-center justify-center font-bold text-primary-700 capitalize">
-                {userData?.name?.charAt(0) || 'U'}
+                {userData?.name?.charAt(0) || userData?.fullName?.charAt(0) || 'U'}
               </div>
-            </div>
+            </Link>
           </div>
         </header>
 

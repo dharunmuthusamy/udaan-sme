@@ -1,14 +1,4 @@
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  doc, 
-  addDoc,
-  updateDoc,
-  serverTimestamp,
-  orderBy
-} from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, getDoc, doc, updateDoc, deleteDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 
 const COLLECTION_NAME = 'tasks';
@@ -53,6 +43,17 @@ export const taskService = {
       });
     } catch (error) {
       console.error('[taskService] Update status error:', error);
+      throw error;
+    }
+  },
+
+  delete: async (taskId) => {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, taskId);
+      await deleteDoc(docRef);
+      return true;
+    } catch (error) {
+      console.error('[taskService] Delete error:', error);
       throw error;
     }
   }

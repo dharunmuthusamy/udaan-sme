@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { purchaseService } from '../../services/purchaseService';
 import { vendorService } from '../../services/vendorService';
@@ -8,7 +8,10 @@ import SearchableDropdown from '../../components/Common/SearchableDropdown';
 
 export default function RecordPurchase() {
   const { businessData } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
@@ -16,13 +19,39 @@ export default function RecordPurchase() {
   const [vendors, setVendors] = useState([]);
   const [products, setProducts] = useState([]);
 
-  const [formData, setFormData] = useState({
-    vendorId: '',
-    productId: '',
-    quantity: '',
-    price: '',
-    date: new Date().toISOString().split('T')[0]
+  const [formData, setFormData] = useState(() => {
+    const saved = sessionStorage.getItem('record_purchase_form');
+    return saved ? JSON.parse(saved) : {
+      vendorId: '',
+      productId: '',
+      quantity: '',
+      price: '',
+      date: new Date().toISOString().split('T')[0]
+    };
   });
+
+  // Persist form changes
+  useEffect(() => {
+    sessionStorage.setItem('record_purchase_form', JSON.stringify(formData));
+  }, [formData]);
+
+  // Handle auto-selection after redirect
+  useEffect(() => {
+    if (!fetching && vendors.length > 0 && products.length > 0) {
+      const newVendorId = queryParams.get('newVendorId');
+      const newProdId = queryParams.get('newProductId');
+
+      if (newVendorId) {
+        setFormData(prev => ({ ...prev, vendorId: newVendorId }));
+        validateField('vendorId', newVendorId);
+      }
+
+      if (newProdId) {
+        setFormData(prev => ({ ...prev, productId: newProdId }));
+        validateField('productId', newProdId);
+      }
+    }
+  }, [fetching, vendors, products]);
 
   const [validationErrors, setValidationErrors] = useState({});
 
@@ -80,6 +109,7 @@ export default function RecordPurchase() {
         quantity: Number(formData.quantity),
         price: Number(formData.price)
       });
+      sessionStorage.removeItem('record_purchase_form');
       navigate('/dashboard/purchases/records');
     } catch (err) {
       console.error('[RecordPurchase] Create error:', err);

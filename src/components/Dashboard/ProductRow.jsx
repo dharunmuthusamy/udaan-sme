@@ -17,6 +17,7 @@ export default function ProductRow({ row, index, products, onUpdate, onRemove, o
           value={row.productId}
           onChange={(val) => onUpdate(index, 'productId', val)}
           onAddSuccess={onAddSuccess}
+          rowIndex={index}
           options={products}
           businessId={businessData?.id}
           placeholder={t('Select a product')}

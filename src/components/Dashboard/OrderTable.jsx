@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { formatDateOnly, formatTimeOnly } from '../../utils/dateUtils';
 
 export default function OrderTable({ orders, loading }) {
   const { t } = useLanguage();
@@ -28,6 +29,7 @@ export default function OrderTable({ orders, loading }) {
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Order No.')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Customer')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Date')}</th>
+            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Time')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Amount')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Status')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400 text-right">{t('Actions')}</th>
@@ -41,7 +43,10 @@ export default function OrderTable({ orders, loading }) {
               </td>
               <td className="px-6 py-4 font-medium text-surface-700">{order.customerName}</td>
               <td className="px-6 py-4 text-surface-500 text-sm">
-                {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : 'Pending'}
+                {formatDateOnly(order.createdAt)}
+              </td>
+              <td className="px-6 py-4 text-surface-500 text-sm font-mono">
+                {formatTimeOnly(order.createdAt)}
               </td>
               <td className="px-6 py-4 font-bold text-surface-900">₹{order.totalAmount.toLocaleString()}</td>
               <td className="px-6 py-4">

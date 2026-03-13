@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +8,10 @@ import { vendorService } from '../../services/vendorService';
 export default function AddVendor() {
   const { businessData } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const redirect = queryParams.get('redirect');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -55,8 +59,16 @@ export default function AddVendor() {
         return setError('Vendor with this phone number already exists.');
       }
 
-      await vendorService.create(businessData.id, formData);
-      navigate('/dashboard/purchases/vendors');
+      const newItem = await vendorService.create(businessData.id, formData);
+      
+      if (redirect) {
+        const decodedRedirect = decodeURIComponent(redirect);
+        const separator = decodedRedirect.includes('?') ? '&' : '?';
+        const finalUrl = `${decodedRedirect}${separator}newVendorId=${newItem.id}`;
+        navigate(finalUrl);
+      } else {
+        navigate('/dashboard/purchases/vendors');
+      }
     } catch (err) {
       console.error('[AddVendor] Create error:', err);
       setError('Failed to create vendor. Please try again.');

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { customerService } from '../../services/customerService';
@@ -11,28 +11,65 @@ import ProductRow from '../../components/Dashboard/ProductRow';
 export default function CreateQuotation() {
   const { businessData, user } = useAuth();
   const { t } = useLanguage();
+  const location = useLocation();
   const navigate = useNavigate();
-  
+
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState({
-    customerId: '',
-    customerName: '',
-    date: new Date().toISOString().split('T')[0],
-    taxRate: 0,
-    status: 'Draft',
-    rows: [{ productId: '', name: '', quantity: 1, unitPrice: 0, subtotal: 0 }]
+  const [form, setForm] = useState(() => {
+    const saved = sessionStorage.getItem('create_quotation_form');
+    return saved ? JSON.parse(saved) : {
+      customerId: '',
+      customerName: '',
+      date: new Date().toISOString().split('T')[0],
+      taxRate: 0,
+      status: 'Draft',
+      rows: [{ productId: '', name: '', quantity: 1, unitPrice: 0, subtotal: 0 }]
+    };
   });
+
+  // Persist form changes
+  useEffect(() => {
+    sessionStorage.setItem('create_quotation_form', JSON.stringify(form));
+  }, [form]);
 
   useEffect(() => {
     if (businessData?.id) {
       loadMasterData();
     }
   }, [businessData]);
+
+  // Handle auto-selection after redirect
+  useEffect(() => {
+    if (!loading && products.length > 0 && customers.length > 0) {
+      const queryParams = new URLSearchParams(location.search);
+      const newCustId = queryParams.get('newCustomerId');
+      const newProdId = queryParams.get('newProductId');
+      const rowIndex = queryParams.get('rowIndex');
+
+      if (newCustId) {
+        const customer = customers.find(c => c.id === newCustId);
+        if (customer) {
+          setForm(prev => ({
+            ...prev,
+            customerId: newCustId,
+            customerName: customer.name
+          }));
+        }
+      }
+
+      if (newProdId && rowIndex !== null) {
+        const product = products.find(p => p.id === newProdId);
+        if (product) {
+          handleRowUpdate(parseInt(rowIndex), 'productId', newProdId);
+        }
+      }
+    }
+  }, [loading, products, customers, location.search]);
 
   async function loadMasterData() {
     try {
@@ -108,6 +145,7 @@ export default function CreateQuotation() {
       };
 
       await quotationService.create(businessData.id, quotationData);
+      sessionStorage.removeItem('create_quotation_form');
       navigate('/dashboard/sales/quotations');
     } catch (err) {
       console.error('[CreateQuotation] Save error:', err);

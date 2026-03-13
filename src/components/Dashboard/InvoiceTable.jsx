@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { formatDateOnly, formatTimeOnly } from '../../utils/dateUtils';
 
 export default function InvoiceTable({ invoices, loading }) {
   const { t } = useLanguage();
@@ -34,6 +35,7 @@ export default function InvoiceTable({ invoices, loading }) {
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Invoice No.')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Customer')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Date')}</th>
+            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Time')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Amount')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400">{t('Status')}</th>
             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-surface-400 text-right">{t('Actions')}</th>
@@ -47,7 +49,10 @@ export default function InvoiceTable({ invoices, loading }) {
               </td>
               <td className="px-6 py-4 font-medium text-surface-700">{invoice.customerName}</td>
               <td className="px-6 py-4 text-surface-500 text-sm">
-                {invoice.invoiceDate}
+                {formatDateOnly(invoice.createdAt || invoice.invoiceDate)}
+              </td>
+              <td className="px-6 py-4 text-surface-500 text-sm font-mono">
+                {formatTimeOnly(invoice.createdAt || invoice.invoiceDate)}
               </td>
               <td className="px-6 py-4 font-bold text-surface-900">₹{invoice.totalAmount.toLocaleString()}</td>
               <td className="px-6 py-4">

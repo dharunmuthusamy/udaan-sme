@@ -6,7 +6,7 @@ export default function Settings() {
   const { t } = useLanguage();
   const { userData } = useAuth();
   const isOwner = userData?.role === 'owner';
-
+  
   return (
     <div className="max-w-6xl mx-auto anime-fade-in space-y-6">
       {/* Header */}
@@ -18,12 +18,6 @@ export default function Settings() {
       </div>
 
       <div className="space-y-6">
-        
-        {/* Debug block - Temporary */}
-        <pre className="text-[10px] bg-slate-900 text-green-400 p-4 rounded-xl overflow-auto max-w-full">
-          {JSON.stringify({ userData, isOwner }, null, 2)}
-        </pre>
-
         {/* Owner-only: Management */}
         {isOwner && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

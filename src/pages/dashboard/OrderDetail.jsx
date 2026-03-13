@@ -60,6 +60,15 @@ export default function OrderDetail() {
             Generate Invoice
           </button>
         )}
+
+        {order.invoiceId && (
+          <Link
+            to={`/dashboard/sales/${order.invoiceId}`}
+            className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all active:scale-95"
+          >
+            View Invoice
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -120,6 +129,17 @@ export default function OrderDetail() {
                     className="text-xs font-mono text-primary-300 hover:underline"
                   >
                     QTN-{order.quotationId.slice(-6).toUpperCase()}
+                  </Link>
+                </div>
+              )}
+              {order.invoiceId && (
+                <div className="pt-4 border-t border-white/10">
+                  <p className="text-[10px] opacity-40 uppercase mb-1">Generated Invoice</p>
+                  <Link 
+                    to={`/dashboard/sales/${order.invoiceId}`}
+                    className="text-xs font-mono text-emerald-400 hover:underline"
+                  >
+                    INV-{order.invoiceId.slice(-6).toUpperCase()}
                   </Link>
                 </div>
               )}

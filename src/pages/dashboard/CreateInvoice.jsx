@@ -6,6 +6,7 @@ import { customerService } from '../../services/customerService';
 import { productService } from '../../services/productService';
 import { invoiceService } from '../../services/invoiceService';
 import { orderService } from '../../services/orderService';
+import SearchableDropdown from '../../components/Common/SearchableDropdown';
 import ProductRow from '../../components/Dashboard/ProductRow';
 import { useLocation } from 'react-router-dom';
 
@@ -23,24 +24,74 @@ export default function CreateInvoice() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState({
-    customerId: '',
-    customerName: '',
-    date: new Date().toISOString().split('T')[0],
-    gstNumber: '',
-    cgst: 9,
-    sgst: 9,
-    igst: 18,
-    isInterState: false, // true = IGST, false = CGST+SGST
-    status: 'Pending',
-    rows: [{ productId: '', name: '', quantity: 1, unitPrice: 0, subtotal: 0 }]
+  const [form, setForm] = useState(() => {
+    const saved = sessionStorage.getItem('create_invoice_form');
+    // If we have an orderId, we might NOT want to use saved state if it was for a different order
+    // But for "Add New Product" return, we definitely want it.
+    // Compromise: if saved state exists AND it's from an order, ensure IDs match or ignore if coming from a fresh "Add New".
+    return saved ? JSON.parse(saved) : {
+      customerId: '',
+      customerName: '',
+      date: new Date().toISOString().split('T')[0],
+      gstNumber: '',
+      cgst: 9,
+      sgst: 9,
+      igst: 18,
+      isInterState: false,
+      status: 'Pending',
+      rows: [{ productId: '', name: '', quantity: 1, unitPrice: 0, subtotal: 0 }]
+    };
   });
 
+  // Persist form changes
   useEffect(() => {
+    sessionStorage.setItem('create_invoice_form', JSON.stringify(form));
+  }, [form]);
+
+  // Handle auto-selection after redirect
+  useEffect(() => {
+    if (!loading && products.length > 0 && customers.length > 0) {
+      const newCustId = queryParams.get('newCustomerId');
+      const newProdId = queryParams.get('newProductId');
+      const rowIndex = queryParams.get('rowIndex');
+
+      if (newCustId) {
+        const customer = customers.find(c => c.id === newCustId);
+        if (customer) {
+          let isInterState = false;
+          if (customer.address && businessData?.location) {
+            const custAddr = customer.address.toLowerCase();
+            const bizLoc = businessData.location.toLowerCase();
+            if (!custAddr.includes(bizLoc)) {
+              isInterState = true;
+            }
+          }
+          setForm(prev => ({
+            ...prev,
+            customerId: newCustId,
+            customerName: customer.name,
+            isInterState
+          }));
+        }
+      }
+
+      if (newProdId && rowIndex !== null) {
+        const product = products.find(p => p.id === newProdId);
+        if (product) {
+          handleRowUpdate(parseInt(rowIndex), 'productId', newProdId);
+        }
+      }
+    }
+  }, [loading, products, customers]);
+
+  useEffect(() => {
+    console.log('[CreateInvoice] Effect triggered', { businessId: businessData?.id, orderId });
     if (businessData?.id) {
       loadMasterData();
+    } else {
+      console.warn('[CreateInvoice] Business data not ready');
     }
-  }, [businessData, orderId]);
+  }, [businessData?.id, orderId]);
 
   async function loadMasterData() {
     try {
@@ -50,36 +101,67 @@ export default function CreateInvoice() {
       ]);
       setCustomers(custs);
       setProducts(prods);
+      
+      if (orderId) {
+        await loadOrder(custs || [], prods || []);
+      }
     } catch (err) {
       console.error('[CreateInvoice] Load error:', err);
+      setError('Failed to load required data.');
     } finally {
       setLoading(false);
-    }
-    
-    if (orderId) {
-      await loadOrder(custs || [], prods || []);
     }
   }
 
   async function loadOrder(allCustomers, allProducts) {
     try {
+      console.log('[CreateInvoice] Fetching order:', orderId, 'for business:', businessData.id);
       const order = await orderService.getById(orderId);
+      console.log('[CreateInvoice] Resulting order:', order);
+      
       if (order) {
+        if (order.businessId !== businessData.id) {
+          console.error('[CreateInvoice] Business ID mismatch', { orderBiz: order.businessId, currentBiz: businessData.id });
+          setError('Order belongs to a different business.');
+          return;
+        }
+
+        // Calculate isInterState
+        let isInterState = false;
+        const customer = allCustomers.find(c => c.id === order.customerId);
+        if (customer && customer.address && businessData?.location) {
+          const custAddr = customer.address.toLowerCase();
+          const bizLoc = businessData.location.toLowerCase();
+          if (!custAddr.includes(bizLoc)) {
+            isInterState = true;
+          }
+        }
+
+        const orderProducts = order.products || order.items || [];
+        if (orderProducts.length === 0) {
+          console.warn('[CreateInvoice] Order has no products');
+        }
+
         setForm(prev => ({
           ...prev,
-          customerId: order.customerId,
-          customerName: order.customerName,
-          rows: order.products.map(p => ({
-            productId: p.productId,
-            name: p.name,
-            quantity: p.quantity,
-            unitPrice: p.unitPrice,
-            subtotal: p.subtotal
+          customerId: order.customerId || '',
+          customerName: order.customerName || '',
+          isInterState,
+          rows: orderProducts.map(p => ({
+            productId: p.productId || p.id || '',
+            name: p.name || 'Unknown Product',
+            quantity: p.quantity || 1,
+            unitPrice: p.unitPrice || 0,
+            subtotal: p.subtotal || ((p.quantity || 1) * (p.unitPrice || 0))
           }))
         }));
+      } else {
+        console.error('[CreateInvoice] Order not found in database');
+        setError('Order not found. It may have been deleted.');
       }
     } catch (err) {
-      console.error('[CreateInvoice] Order load error:', err);
+      console.error('[CreateInvoice] Order load exception:', err);
+      setError(`Error fetching order: ${err.message}`);
     }
   }
 
@@ -155,6 +237,7 @@ export default function CreateInvoice() {
       };
 
       await invoiceService.create(businessData.id, invoiceData);
+      sessionStorage.removeItem('create_invoice_form');
       navigate('/dashboard/sales');
     } catch (err) {
       console.error('[CreateInvoice] Save error:', err);
@@ -178,6 +261,11 @@ export default function CreateInvoice() {
         {orderId && (
           <span className="ml-4 px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-xs font-mono font-bold">
             ORD-{orderId.slice(-6).toUpperCase()}
+          </span>
+        )}
+        {error && (
+          <span className="ml-4 px-4 py-1.5 bg-red-100 text-red-600 rounded-xl text-xs font-bold animate-shake">
+            {error}
           </span>
         )}
       </div>

@@ -101,7 +101,7 @@ export default function QuotationDetail() {
               </div>
               <div>
                 <p className="text-xs font-black uppercase text-surface-400 mb-1">Quotation Date</p>
-                <p className="font-bold text-surface-900">{quotation.quotationDate}</p>
+                <p className="font-bold text-surface-900">{quotation.date}</p>
               </div>
             </div>
           </div>

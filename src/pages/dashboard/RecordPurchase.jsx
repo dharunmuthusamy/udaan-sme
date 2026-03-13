@@ -107,7 +107,8 @@ export default function RecordPurchase() {
         vendorName: selectedVendor?.name || 'Unknown Vendor',
         productName: selectedProduct?.name || 'Unknown Product',
         quantity: Number(formData.quantity),
-        price: Number(formData.price)
+        price: Number(formData.price),
+        totalAmount: Number(formData.quantity) * Number(formData.price)
       });
       sessionStorage.removeItem('record_purchase_form');
       navigate('/dashboard/purchases/records');

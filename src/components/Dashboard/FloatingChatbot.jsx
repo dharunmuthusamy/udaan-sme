@@ -48,28 +48,54 @@ const FloatingChatbot = () => {
     }
   }, [language, isOpen, initChatSession]);
 
-  // Speech recognition setup
-  useEffect(() => {
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+  // Speech recognition setup and lifecycle
+  const initSpeechRecognition = useCallback(() => {
+    if (!SpeechRecognition) return null;
+    
+    console.log('Initializing SpeechRecognition...');
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = language === 'hi' ? 'hi-IN' : language === 'ta' ? 'ta-IN' : 'en-US';
 
-      recognitionRef.current.onstart = () => setIsListening(true);
-      recognitionRef.current.onresult = (event) => {
-        setInputMessage(event.results[0][0].transcript);
-        setIsListening(false);
-      };
-      recognitionRef.current.onerror = () => setIsListening(false);
-      recognitionRef.current.onend = () => setIsListening(false);
-    }
-  }, [SpeechRecognition]);
+    recognition.onstart = () => {
+      console.log('Speech recognition started');
+      setIsListening(true);
+    };
 
-  // Update recognition language when language changes
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      console.log('Speech recognition result:', transcript);
+      setInputMessage(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error, event.message);
+      setIsListening(false);
+      
+      // Provide user feedback for common errors
+      if (event.error === 'not-allowed') {
+        setMessages(prev => [...prev, { role: 'ai', content: 'Microphone access denied. Please check your browser permissions.' }]);
+      } else if (event.error === 'no-speech') {
+        console.log('No speech detected.');
+      }
+    };
+
+    recognition.onend = () => {
+      console.log('Speech recognition ended');
+      setIsListening(false);
+    };
+
+    return recognition;
+  }, [SpeechRecognition, language]);
+
+  // Sync recognition language if it exists
   useEffect(() => {
     if (recognitionRef.current) {
       recognitionRef.current.lang =
         language === 'hi' ? 'hi-IN' : language === 'ta' ? 'ta-IN' : 'en-US';
+      console.log('SpeechRecognition language updated to:', recognitionRef.current.lang);
     }
   }, [language]);
 
@@ -111,11 +137,29 @@ const FloatingChatbot = () => {
 
   const handleMicClick = () => {
     if (isListening) {
+      console.log('Stopping recognition...');
       recognitionRef.current?.stop();
-    } else if (recognitionRef.current) {
-      try { recognitionRef.current.start(); } catch (e) { /* already started */ }
-    } else {
+      return;
+    }
+
+    if (!SpeechRecognition) {
       alert('Your browser does not support Speech Recognition.');
+      return;
+    }
+
+    // Lazy init or re-init to ensure fresh state
+    if (!recognitionRef.current) {
+      recognitionRef.current = initSpeechRecognition();
+    }
+
+    try {
+      console.log('Starting recognition...');
+      recognitionRef.current.start();
+    } catch (e) {
+      console.warn('Recognition already started or failed to start:', e);
+      // If it failed to start, try re-initializing next time
+      recognitionRef.current = initSpeechRecognition();
+      try { recognitionRef.current.start(); } catch (err) { console.error('Final attempt failed:', err); }
     }
   };
 
@@ -133,10 +177,10 @@ const FloatingChatbot = () => {
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="bg-white rounded-2xl shadow-2xl border border-surface-200 w-80 sm:w-96 mb-4 flex flex-col overflow-hidden pointer-events-auto transition-all duration-300 transform origin-bottom-right drop-shadow-lg">
+        <div className="bg-white rounded-2xl shadow-2xl border border-surface-200 w-80 sm:w-96 mb-4 flex flex-col overflow-hidden pointer-events-auto transition-all duration-300 transform origin-bottom-right drop-shadow-lg max-h-[80vh] sm:max-h-[600px]">
 
           {/* Header */}
-          <div className="bg-primary-600 text-white p-4 flex justify-between items-center">
+          <div className="bg-primary-600 text-white p-4 flex justify-between items-center shrink-0">
             <div className="flex items-center gap-2">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
               <div>
@@ -164,7 +208,7 @@ const FloatingChatbot = () => {
           </div>
 
           {/* Voice Toggle Bar */}
-          <div className="bg-surface-50 px-4 py-2 flex justify-between items-center border-b border-surface-200 text-xs">
+          <div className="bg-surface-50 px-4 py-2 flex justify-between items-center border-b border-surface-200 text-xs shrink-0">
             <span className="text-surface-600 font-medium">Voice Response</span>
             <label className="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" className="sr-only peer" checked={voiceResponseEnabled} onChange={() => setVoiceResponseEnabled(!voiceResponseEnabled)} />
@@ -173,7 +217,11 @@ const FloatingChatbot = () => {
           </div>
 
           {/* Chat History */}
-          <div className="flex-1 p-4 overflow-y-auto bg-surface-50/50 h-80 space-y-4" ref={chatHistoryRef}>
+          <div 
+            className="flex-1 p-4 overflow-y-auto bg-surface-50/50 space-y-4 custom-scrollbar" 
+            ref={chatHistoryRef}
+            style={{ scrollBehavior: 'smooth' }}
+          >
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] rounded-2xl px-4 py-2 ${
@@ -197,7 +245,7 @@ const FloatingChatbot = () => {
           </div>
 
           {/* Input Area */}
-          <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-surface-200 flex items-center gap-2">
+          <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-surface-200 flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handleMicClick}

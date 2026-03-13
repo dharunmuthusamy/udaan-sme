@@ -3,6 +3,8 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import Sidebar from './Sidebar';
+import FloatingChatbot from './FloatingChatbot';
+
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -91,6 +93,9 @@ export default function DashboardLayout() {
           )}
         </main>
       </div>
+      
+      {/* Global Dashboard Chatbot */}
+      <FloatingChatbot />
     </div>
   );
 }

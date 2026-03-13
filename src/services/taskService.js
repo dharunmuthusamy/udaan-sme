@@ -34,6 +34,22 @@ export const taskService = {
     }
   },
 
+  getByStaff: async (businessId, staffId) => {
+    try {
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('businessId', '==', businessId),
+        where('assignedTo', '==', staffId),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error('[taskService] Get by staff error:', error);
+      throw error;
+    }
+  },
+
   updateStatus: async (taskId, status) => {
     try {
       const docRef = doc(db, COLLECTION_NAME, taskId);

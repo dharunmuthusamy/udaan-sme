@@ -34,3 +34,33 @@ export const formatDateWithTime = (dateInput) => {
   if (date === 'Pending') return 'Pending';
   return `${date} ${time}`;
 };
+
+export const formatDuration = (checkIn, checkOut) => {
+  if (!checkIn || !checkOut) return '-';
+  
+  // Convert firebase timestamps to Date objects
+  const start = checkIn.toDate ? checkIn.toDate() : new Date(checkIn);
+  const end = checkOut.toDate ? checkOut.toDate() : new Date(checkOut);
+  
+  const diffMs = end - start;
+  if (diffMs <= 0) return '-';
+  
+  const totalSeconds = Math.floor(diffMs / 1000);
+  if (totalSeconds < 60) {
+    return `${totalSeconds} sec`;
+  }
+  
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  if (totalMinutes < 60) {
+    return `${totalMinutes} min`;
+  }
+  
+  const displayHours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+  
+  let result = `${displayHours} ${displayHours === 1 ? 'hour' : 'hours'}`;
+  if (remainingMinutes > 0) {
+    result += ` and ${remainingMinutes} ${remainingMinutes === 1 ? 'minute' : 'minutes'}`;
+  }
+  return result;
+};

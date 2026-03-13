@@ -30,8 +30,11 @@ export default function Tasks() {
   async function loadData() {
     try {
       setError('');
+      const isOwner = userData?.role === 'owner';
       const [tasksData, staffData] = await Promise.all([
-        taskService.getAll(businessData.id),
+        isOwner 
+          ? taskService.getAll(businessData.id)
+          : taskService.getByStaff(businessData.id, userData.id),
         getBusinessUsers(businessData.id)
       ]);
       const formattedStaff = staffData.map(s => {
@@ -42,16 +45,13 @@ export default function Tasks() {
         };
       });
 
-      const isOwner = userData?.role === 'owner';
-      const enrichedTasks = tasksData
-        .filter(t => isOwner || t.assignedTo === userData?.id || t.createdBy === userData?.id)
-        .map(t => {
-          const staff = formattedStaff.find(s => s.id === t.assignedTo);
-          return {
-            ...t,
-            assignedToName: staff ? staff.name : 'Unknown Staff'
-          };
-        });
+      const enrichedTasks = tasksData.map(t => {
+        const staff = formattedStaff.find(s => s.id === t.assignedTo);
+        return {
+          ...t,
+          assignedToName: staff ? staff.name : 'Unknown Staff'
+        };
+      });
 
       setTasks(enrichedTasks);
       setStaff(formattedStaff);

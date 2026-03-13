@@ -4,6 +4,7 @@ import { useLanguage } from '../../../context/LanguageContext';
 import { attendanceService } from '../../../services/attendanceService';
 import { getBusinessUsers } from '../../../services/dbService';
 import SearchableDropdown from '../../../components/Common/SearchableDropdown';
+import { formatDuration } from '../../../utils/dateUtils';
 
 export default function Attendance() {
   const { userData } = useAuth();
@@ -33,17 +34,20 @@ export default function Attendance() {
     try {
       setLoading(true);
       setError(null);
+      const isOwnerRole = userData?.role === 'owner';
       const isManager = ['owner', 'accountant', 'storekeeper'].includes(userData?.role);
       let data;
-      if (isManager) {
+      if (isOwnerRole) {
         data = await attendanceService.getAll(userData.businessId);
       } else {
         data = await attendanceService.getByStaff(userData.businessId, userData.userId);
       }
       setAttendance(data);
 
-      const active = await attendanceService.getActiveAttendance(userData.userId);
-      setActiveAttendance(active);
+      if (!isOwnerRole) {
+        const active = await attendanceService.getActiveAttendance(userData.userId);
+        setActiveAttendance(active);
+      }
     } catch (err) {
       console.error('Error loading attendance:', err);
       setError(err.message || String(err));
@@ -56,7 +60,7 @@ export default function Attendance() {
     try {
       const users = await getBusinessUsers(userData.businessId);
       // Format for SearchableDropdown: { id, name }
-      setStaffList(users.map(u => ({ id: u.userId, name: u.fullName || u.phone })));
+      setStaffList(users.map(u => ({ id: u.userId || u.id, name: u.fullName || u.phone || u.name })));
     } catch (err) {
       console.error('Error loading staff list:', err);
     }
@@ -104,11 +108,11 @@ export default function Attendance() {
     );
   }
 
-  const isOwner = userData?.role === 'owner' || userData?.role === 'accountant';
+  const isOwner = userData?.role === 'owner';
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-20">
-      {/* Action Header - Hidden for Owner/Accountant */}
+      {/* Action Header */}
       {!isOwner && (
         <div className="bg-white rounded-[2.5rem] border border-surface-200 p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
@@ -231,8 +235,8 @@ export default function Attendance() {
                     }
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-black text-surface-900">
-                      {record.hoursWorked > 0 ? `${record.hoursWorked} hrs` : '-'}
+                    <span className="font-black text-surface-900 text-xs">
+                      {formatDuration(record.checkInTime, record.checkOutTime)}
                     </span>
                   </td>
                 </tr>

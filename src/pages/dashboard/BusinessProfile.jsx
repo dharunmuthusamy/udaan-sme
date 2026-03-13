@@ -10,6 +10,7 @@ export default function BusinessProfile() {
   const isOwner = userData?.role === 'owner';
 
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [ownerData, setOwnerData] = useState(null);
   const [loadingOwner, setLoadingOwner] = useState(true);
   const [imageUploading, setImageUploading] = useState(false);
@@ -127,6 +128,7 @@ export default function BusinessProfile() {
       });
       setOwnerData((prev) => ({ ...prev, ...form }));
       setSaved(true);
+      setIsEditing(false);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       console.error('[BusinessProfile] Save failed:', err);
@@ -180,29 +182,63 @@ export default function BusinessProfile() {
           <h1 className="text-2xl font-black text-surface-900">{t('Business Profile')}</h1>
           <p className="text-surface-500 text-sm mt-0.5">{t('View and manage your business information.')}</p>
         </div>
-        {isOwner && (
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-bold hover:bg-primary-700 disabled:opacity-60 transition-all"
-          >
-            {saving ? (
-              <>
-                <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                {t('Saving...')}
-              </>
-            ) : saved ? (
-              <>
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                {t('Saved!')}
-              </>
-            ) : (
-              t('Save Changes')
-            )}
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {isOwner && !isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-100 text-surface-700 text-sm font-bold hover:bg-surface-200 transition-all"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              {t('Edit Profile')}
+            </button>
+          )}
+          {isEditing && (
+            <>
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  if (ownerData) {
+                    setForm({
+                      fullName: ownerData.fullName || ownerData.name || '',
+                      phone: ownerData.phone || '',
+                      whatsappNumber: ownerData.whatsappNumber || '',
+                      location: businessData?.location || '',
+                      businessName: businessData?.businessName || '',
+                      latitude: businessData?.latitude || null,
+                      longitude: businessData?.longitude || null,
+                    });
+                  }
+                }}
+                className="px-5 py-2.5 rounded-xl bg-surface-100 text-surface-600 text-sm font-bold hover:bg-surface-200 transition-all"
+              >
+                {t('Cancel')}
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-bold hover:bg-primary-700 disabled:opacity-60 transition-all"
+              >
+                {saving ? (
+                  <>
+                    <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                    {t('Saving...')}
+                  </>
+                ) : saved ? (
+                  <>
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {t('Saved!')}
+                  </>
+                ) : (
+                  t('Save Changes')
+                )}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="rounded-2xl border border-surface-200 bg-white shadow-sm overflow-hidden">
@@ -210,7 +246,7 @@ export default function BusinessProfile() {
 
           {/* ── Row 1: Business Name + Business ID ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {isOwner ? (
+            {isEditing ? (
               <EditableField label="Business Name" fieldKey="businessName" />
             ) : (
               <ReadOnlyField label="Business Name" value={businessData.businessName} />
@@ -253,7 +289,7 @@ export default function BusinessProfile() {
           {/* ── Row 2: Location ── */}
           <div>
             <h2 className="text-base font-black text-surface-700 uppercase tracking-wider mb-4">{t('Business Location')}</h2>
-            {isOwner ? (
+            {isEditing ? (
               <div className="max-w-xl">
                 <div className="flex items-center justify-between mb-1.5">
                   <label htmlFor="location" className="block text-sm font-bold text-surface-500 uppercase tracking-wider">
@@ -309,7 +345,7 @@ export default function BusinessProfile() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {isOwner ? (
+                {isEditing ? (
                   <>
                     <EditableField label="Owner Name" fieldKey="fullName" />
                     <EditableField label="Phone Number" fieldKey="phone" type="tel" />
@@ -333,7 +369,7 @@ export default function BusinessProfile() {
             <h3 className="text-sm font-bold text-surface-500 uppercase tracking-wider mb-3">{t('Shop Image')}</h3>
 
             {/* Hidden file input */}
-            {isOwner && (
+            {isEditing && (
               <input
                 ref={imageInputRef}
                 type="file"
@@ -345,15 +381,15 @@ export default function BusinessProfile() {
 
             {shopImageUrl ? (
               <div
-                className={`relative aspect-video max-w-sm rounded-xl overflow-hidden border border-surface-200 bg-surface-50 ${isOwner ? 'cursor-pointer group' : ''}`}
-                onClick={() => isOwner && imageInputRef.current?.click()}
+                className={`relative aspect-video max-w-sm rounded-xl overflow-hidden border border-surface-200 bg-surface-50 ${isEditing ? 'cursor-pointer group' : ''}`}
+                onClick={() => isEditing && imageInputRef.current?.click()}
               >
                 <img
                   src={shopImageUrl}
                   alt={businessData.businessName || 'Shop'}
                   className="w-full h-full object-cover"
                 />
-                {isOwner && (
+                {isEditing && (
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                     {imageUploading ? (
                       <span className="h-7 w-7 rounded-full border-2 border-white/40 border-t-white animate-spin" />
@@ -371,8 +407,8 @@ export default function BusinessProfile() {
               </div>
             ) : (
               <div
-                className={`aspect-video max-w-sm rounded-xl border-2 border-dashed border-surface-200 bg-surface-50 flex flex-col items-center justify-center text-surface-400 ${isOwner ? 'cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors' : ''}`}
-                onClick={() => isOwner && imageInputRef.current?.click()}
+                className={`aspect-video max-w-sm rounded-xl border-2 border-dashed border-surface-200 bg-surface-50 flex flex-col items-center justify-center text-surface-400 ${isEditing ? 'cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors' : ''}`}
+                onClick={() => isEditing && imageInputRef.current?.click()}
               >
                 {imageUploading ? (
                   <span className="h-8 w-8 rounded-full border-[3px] border-surface-200 border-t-primary-500 animate-spin" />
@@ -381,7 +417,7 @@ export default function BusinessProfile() {
                     <svg className="w-10 h-10 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                     </svg>
-                    <span className="text-sm font-medium">{isOwner ? t('Click to upload image') : t('No image uploaded')}</span>
+                    <span className="text-sm font-medium">{isEditing ? t('Click to upload image') : t('No image uploaded')}</span>
                   </>
                 )}
               </div>

@@ -8,7 +8,7 @@ import TaskTable from '../../../components/Dashboard/TaskTable';
 import SearchableDropdown from '../../../components/Common/SearchableDropdown';
 
 export default function Tasks() {
-  const { businessData } = useAuth();
+  const { businessData, userData } = useAuth();
   const { t } = useLanguage();
   const [tasks, setTasks] = useState([]);
   const [staff, setStaff] = useState([]);
@@ -42,13 +42,16 @@ export default function Tasks() {
         };
       });
 
-      const enrichedTasks = tasksData.map(t => {
-        const staff = formattedStaff.find(s => s.id === t.assignedTo);
-        return {
-          ...t,
-          assignedToName: staff ? staff.name : 'Unknown Staff'
-        };
-      });
+      const isOwner = userData?.role === 'owner';
+      const enrichedTasks = tasksData
+        .filter(t => isOwner || t.assignedTo === userData?.id || t.createdBy === userData?.id)
+        .map(t => {
+          const staff = formattedStaff.find(s => s.id === t.assignedTo);
+          return {
+            ...t,
+            assignedToName: staff ? staff.name : 'Unknown Staff'
+          };
+        });
 
       setTasks(enrichedTasks);
       setStaff(formattedStaff);
@@ -89,6 +92,17 @@ export default function Tasks() {
   const pendingTasks = filteredTasks.filter(t => t.status === 'Pending').length;
   const inProgressTasks = filteredTasks.filter(t => t.status === 'In Progress').length;
   const completedTasks = filteredTasks.filter(t => t.status === 'Completed').length;
+
+  const updateTaskStatus = async (taskId, newStatus) => {
+    try {
+      await taskService.updateStatus(taskId, newStatus);
+      // Optimistic UI update
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+    } catch (err) {
+      console.error('[Tasks] Update status error:', err);
+      // Could show a toast notification here
+    }
+  };
 
   return (
     <div className="space-y-8 anime-fade-in">
@@ -237,8 +251,9 @@ export default function Tasks() {
           </button>
         </div>
       ) : (
-        <TaskTable tasks={filteredTasks} />
+        <TaskTable tasks={filteredTasks} currentUser={userData} onUpdateTask={updateTaskStatus} />
       )}
     </div>
   );
 }
+

@@ -3,7 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Allows anyone who is logged in to read/write user profiles
     match /users/{userId} {
-      allow read, write: if request.auth != null;
+      allow read, create: if request.auth != null;
+      allow update: if request.auth != null && (
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status'])) ||
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner')
+      );
+      allow delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
     
     // Business data access

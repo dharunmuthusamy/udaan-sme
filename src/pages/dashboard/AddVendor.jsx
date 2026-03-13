@@ -27,6 +27,8 @@ export default function AddVendor() {
     const errors = { ...validationErrors };
     if (!value.trim()) {
       errors[name] = `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
+    } else if (name === 'phone' && !/^\d{10}$/.test(value)) {
+      errors[name] = 'Invalid phone number. Please enter a 10-digit phone number.';
     } else {
       delete errors[name];
     }
@@ -112,12 +114,16 @@ export default function AddVendor() {
               <input
                 type="tel"
                 required
+                maxLength={10}
                 className={`w-full rounded-2xl border-surface-200 bg-surface-50 p-4 font-bold text-surface-900 focus:border-primary-500 focus:ring-primary-500 transition-all ${validationErrors.phone ? 'border-red-500 bg-red-50/50' : ''}`}
-                placeholder="e.g. +91 98765 43210"
+                placeholder="1234567890"
                 value={formData.phone}
                 onChange={(e) => {
-                  setFormData({ ...formData, phone: e.target.value });
-                  validateField('phone', e.target.value);
+                  const val = e.target.value.replace(/\D/g, '');
+                  if (val.length <= 10) {
+                    setFormData({ ...formData, phone: val });
+                    validateField('phone', val);
+                  }
                 }}
               />
               {validationErrors.phone && <p className="mt-1 ml-1 text-[10px] font-bold text-red-500">{validationErrors.phone}</p>}

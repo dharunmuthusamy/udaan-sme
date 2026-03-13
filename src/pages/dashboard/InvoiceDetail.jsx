@@ -12,6 +12,7 @@ export default function InvoiceDetail() {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const invoiceRef = useRef();
 
   useEffect(() => {

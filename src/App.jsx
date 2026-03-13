@@ -42,6 +42,7 @@ import UserManagement from './pages/dashboard/staffs/UserManagement';
 import StaffsLayout from './pages/dashboard/staffs/StaffsLayout';
 import Attendance from './pages/dashboard/staffs/Attendance';
 import BusinessProfile from './pages/dashboard/BusinessProfile';
+import UserProfile from './pages/dashboard/UserProfile';
 
 // Components
 import Navbar from './components/Navbar';
@@ -121,8 +122,9 @@ function LayoutWrapper() {
               <Route path="attendance" element={<Attendance />} />
             </Route>
 
-            <Route path="analytics" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant']}><Analytics /></RoleProtectedRoute>} />
+            <Route path="analytics" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><Analytics /></RoleProtectedRoute>} />
             <Route path="business" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><BusinessProfile /></RoleProtectedRoute>} />
+            <Route path="profile" element={<RoleProtectedRoute allowedRoles={['owner', 'accountant', 'storekeeper', 'staff']}><UserProfile /></RoleProtectedRoute>} />
             <Route path="help" element={<HelpCenter />} />
           </Route>
         </Routes>

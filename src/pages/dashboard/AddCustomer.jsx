@@ -21,10 +21,29 @@ export default function AddCustomer() {
     notes: ''
   });
 
+  const validateEmail = (email) => {
+    if (!email) return true; // Optional field, only validate if provided
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    
+    // Core info validation
     if (!form.name || !form.phone) {
       return setError('Name and Phone are required.');
+    }
+
+    // Phone validation (exactly 10 digits)
+    if (!/^\d{10}$/.test(form.phone)) {
+      return setError('Invalid phone number. Please enter a 10-digit phone number.');
+    }
+
+    // Email validation
+    if (form.email && !validateEmail(form.email)) {
+      return setError('Invalid email address. Please enter a valid email.');
     }
 
     setSaving(true);
@@ -81,10 +100,14 @@ export default function AddCustomer() {
               <input
                 type="tel"
                 required
+                maxLength={10}
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  if (val.length <= 10) setForm({ ...form, phone: val });
+                }}
                 className="w-full rounded-2xl border border-surface-200 bg-surface-50 px-4 py-3.5 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-400 transition-all"
-                placeholder="+91 98765 43210"
+                placeholder="1234567890"
               />
             </div>
 

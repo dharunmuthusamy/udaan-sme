@@ -1,6 +1,6 @@
 import { useLanguage } from '../../context/LanguageContext';
 
-export default function TaskTable({ tasks }) {
+export default function TaskTable({ tasks, currentUser, onUpdateTask }) {
   const { t } = useLanguage();
   if (tasks.length === 0) {
     return (
@@ -53,9 +53,21 @@ export default function TaskTable({ tasks }) {
                   {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : t('No Date')}
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-black ${getStatusColor(task.status)}`}>
-                    {t(task.status)}
-                  </span>
+                  {currentUser && (currentUser.role === 'owner' || currentUser.id === task.assignedTo) ? (
+                    <select
+                      value={task.status}
+                      onChange={(e) => onUpdateTask && onUpdateTask(task.id, e.target.value)}
+                      className={`px-3 py-1 rounded-full text-xs font-black outline-none cursor-pointer border-r-8 border-transparent ${getStatusColor(task.status)}`}
+                    >
+                      <option value="Pending" className="text-surface-900 bg-white">{t('Pending')}</option>
+                      <option value="In Progress" className="text-surface-900 bg-white">{t('In Progress')}</option>
+                      <option value="Completed" className="text-surface-900 bg-white">{t('Completed')}</option>
+                    </select>
+                  ) : (
+                    <span className={`px-3 py-1 rounded-full text-xs font-black inline-block ${getStatusColor(task.status)}`}>
+                      {t(task.status)}
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}

@@ -108,37 +108,44 @@ export default function Attendance() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-20">
-      {/* Action Header */}
-      <div className="bg-white rounded-[2.5rem] border border-surface-200 p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-2xl font-black text-surface-900 tracking-tight">{t('Daily Attendance')}</h2>
-          <p className="text-surface-500 font-medium">{t('Check in when you start work and out when you finish.')}</p>
+      {/* Action Header - Hidden for Owner/Accountant */}
+      {!isOwner && (
+        <div className="bg-white rounded-[2.5rem] border border-surface-200 p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h2 className="text-2xl font-black text-surface-900 tracking-tight">{t('Daily Attendance')}</h2>
+            <p className="text-surface-500 font-medium">{t('Check in when you start work and out when you finish.')}</p>
+          </div>
+          <div className="flex gap-4">
+            <button
+              onClick={handleCheckIn}
+              disabled={activeAttendance !== null || actionLoading}
+              className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:active:scale-100 ${
+                activeAttendance === null 
+                  ? 'bg-primary-600 text-white shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-0.5' 
+                  : 'bg-surface-100 text-surface-400'
+              }`}
+            >
+              {t('Check In')}
+            </button>
+            <button
+              onClick={handleCheckOut}
+              disabled={activeAttendance === null || actionLoading}
+              className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:active:scale-100 ${
+                activeAttendance !== null 
+                  ? 'bg-red-600 text-white shadow-red-500/20 hover:bg-red-700 hover:-translate-y-0.5' 
+                  : 'bg-surface-100 text-surface-400'
+              }`}
+            >
+              {t('Check Out')}
+            </button>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <button
-            onClick={handleCheckIn}
-            disabled={activeAttendance !== null || actionLoading}
-            className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:active:scale-100 ${
-              activeAttendance === null 
-                ? 'bg-primary-600 text-white shadow-primary-500/20 hover:bg-primary-700 hover:-translate-y-0.5' 
-                : 'bg-surface-100 text-surface-400'
-            }`}
-          >
-            {t('Check In')}
-          </button>
-          <button
-            onClick={handleCheckOut}
-            disabled={activeAttendance === null || actionLoading}
-            className={`flex-1 md:flex-none px-8 py-4 rounded-2xl font-black transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:active:scale-100 ${
-              activeAttendance !== null 
-                ? 'bg-red-600 text-white shadow-red-500/20 hover:bg-red-700 hover:-translate-y-0.5' 
-                : 'bg-surface-100 text-surface-400'
-            }`}
-          >
-            {t('Check Out')}
-          </button>
+      )}
+      {isOwner && (
+        <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-black text-surface-900 tracking-tight">{t('Staff Attendance Tracking')}</h2>
         </div>
-      </div>
+      )}
 
       {/* Filters */}
       <div className="bg-surface-50 rounded-3xl p-6 border border-surface-200 flex flex-col md:flex-row gap-4 items-end">

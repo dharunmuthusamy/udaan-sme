@@ -106,7 +106,8 @@ export default function UserManagement() {
                     <select
                       value={user.role}
                       onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      disabled={user.id === userData.id} // Don't allow owner to change own role to prevent lockout
+                      disabled={user.id === userData.id || userData.role !== 'owner'} // Don't allow owner to change own role to prevent lockout
+
                       className="rounded-lg border border-surface-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="owner">{t('Owner')}</option>
@@ -125,7 +126,7 @@ export default function UserManagement() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {user.id !== userData.id && (
+                    {user.id !== userData.id && userData.role === 'owner' && (
                       <button
                         onClick={() => handleStatusChange(user.id, user.status)}
                         className={`text-sm font-bold transition-colors ${

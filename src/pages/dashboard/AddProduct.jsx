@@ -26,10 +26,27 @@ export default function AddProduct() {
 
   const validateField = (name, value) => {
     const errors = { ...validationErrors };
+    
     if (!value && name !== 'sku' && name !== 'category') {
       errors[name] = `${name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1')} is required`;
     } else if (name === 'category' && !value) {
       errors[name] = 'Category is required';
+    } else if (name === 'price') {
+      const priceVal = parseFloat(value);
+      if (isNaN(priceVal) || priceVal <= 0) {
+        errors[name] = 'Invalid amount. Price must be greater than ₹0.';
+      } else if (!/^\d+(\.\d{1,2})?$/.test(value)) {
+        errors[name] = 'Price can have up to 2 decimal places';
+      } else {
+        delete errors[name];
+      }
+    } else if (name === 'stockQuantity') {
+      const stockVal = Number(value);
+      if (isNaN(stockVal) || !Number.isInteger(stockVal) || stockVal <= 0) {
+        errors[name] = 'Invalid quantity. Please enter a value greater than 0.';
+      } else {
+        delete errors[name];
+      }
     } else {
       delete errors[name];
     }

@@ -7,7 +7,7 @@ import SearchableDropdown from '../../../components/Common/SearchableDropdown';
 import { useEffect } from 'react';
 
 export default function CreateTask() {
-  const { businessData } = useAuth();
+  const { businessData, userData } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +31,13 @@ export default function CreateTask() {
   async function loadStaff() {
     try {
       const data = await getBusinessUsers(businessData.id);
-      const formattedStaff = data.map(s => {
+      const isOwner = userData?.role === 'owner';
+      
+      const filteredData = isOwner 
+        ? data 
+        : data.filter(s => s.role !== 'owner');
+
+      const formattedStaff = filteredData.map(s => {
         const displayName = s.fullName || s.name || s.phone || 'Unknown Staff';
         return {
           ...s,
@@ -58,7 +64,10 @@ export default function CreateTask() {
     setError('');
 
     try {
-      await taskService.create(businessData.id, formData);
+      await taskService.create(businessData.id, {
+        ...formData,
+        createdBy: userData?.id
+      });
       navigate('/dashboard/staffs/tasks');
     } catch (err) {
       console.error('[CreateTask] Create error:', err);

@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 
 export default function Analytics() {
-  const { businessData } = useAuth();
+  const { businessData, userData } = useAuth();
   const { t } = useLanguage();
   
   const [data, setData] = useState({ metrics: null, charts: null });
@@ -129,6 +129,8 @@ export default function Analytics() {
   }
 
   const { metrics, charts } = data;
+  const isOwnerOrAccountant = userData?.role === 'owner' || userData?.role === 'accountant';
+  const isManager = isOwnerOrAccountant || userData?.role === 'storekeeper';
 
   return (
     <div className="space-y-6 pb-20 anime-fade-in">
@@ -182,14 +184,16 @@ export default function Analytics() {
         <>
           {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <KPICard title={t('Total Revenue')} value={formatCurrency(metrics.totalSales)} icon="revenue" color="indigo" />
-            <KPICard title={t('Total Purchases')} value={formatCurrency(metrics.totalPurchases)} icon="purchase" color="orange" />
-            <KPICard 
-              title={t('Net Profit')} 
-              value={formatCurrency(metrics.netProfit)} 
-              icon="profit" 
-              color={metrics.netProfit >= 0 ? 'emerald' : 'rose'} 
-            />
+            {isOwnerOrAccountant && <KPICard title={t('Total Revenue')} value={formatCurrency(metrics.totalSales)} icon="revenue" color="indigo" />}
+            {isManager && <KPICard title={t('Total Purchases')} value={formatCurrency(metrics.totalPurchases)} icon="purchase" color="orange" />}
+            {isOwnerOrAccountant && (
+              <KPICard 
+                title={t('Net Profit')} 
+                value={formatCurrency(metrics.netProfit)} 
+                icon="profit" 
+                color={metrics.netProfit >= 0 ? 'emerald' : 'rose'} 
+              />
+            )}
             <KPICard title={t('Low Stock')} value={metrics.lowStockProducts} icon="stock" color="amber" subText={t('Items under threshold')} />
             <KPICard title={t('Pending Tasks')} value={metrics.pendingTasks} icon="tasks" color="blue" />
           </div>
@@ -197,17 +201,19 @@ export default function Analytics() {
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Sales Trend */}
-            <ChartContainer title={t('Sales Trend')}>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={charts.salesTrend}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} tickFormatter={v => `₹${v>=1000 ? (v/1000).toFixed(0)+'k' : v}`} />
-                  <Tooltip contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                  <Line type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={3} dot={{ r: 4, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {isOwnerOrAccountant && (
+              <ChartContainer title={t('Sales Trend')}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={charts.salesTrend}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} tickFormatter={v => `₹${v>=1000 ? (v/1000).toFixed(0)+'k' : v}`} />
+                    <Tooltip contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                    <Line type="monotone" dataKey="sales" stroke="#4f46e5" strokeWidth={3} dot={{ r: 4, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            )}
 
             {/* Top Products */}
             <ChartContainer title={t('Top Selling Products')}>
@@ -217,32 +223,52 @@ export default function Analytics() {
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} width={80} />
                   <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                  <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} />
+                  <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} barBarSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
 
             {/* Purchase Distribution */}
-            <ChartContainer title={t('Purchase by Vendor')}>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={charts.purchaseDist}
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {charts.purchaseDist.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                  <Legend verticalAlign="bottom" height={36}/>
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {isManager && (
+              <ChartContainer title={t('Purchase by Vendor')}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={charts.purchaseDist}
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {charts.purchaseDist.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(value) => formatCurrency(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  
+                  <div className="flex flex-col justify-center max-h-[300px] overflow-y-auto">
+                    <div className="space-y-3 pr-2">
+                       {charts.purchaseDist.map((vendor, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-surface-50 border border-surface-100 hover:bg-surface-100 transition-colors">
+                            <div className="flex items-center gap-3 truncate">
+                              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                              <span className="font-bold text-sm text-surface-700 truncate">{vendor.name}</span>
+                            </div>
+                            <span className="font-black text-sm text-surface-900 ml-4 flex-shrink-0">{formatCurrency(vendor.value)}</span>
+                          </div>
+                      ))}
+                      {charts.purchaseDist.length === 0 && (
+                        <p className="text-center text-surface-400 font-medium italic py-4">{t('No Purchase Data')}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </ChartContainer>
+            )}
 
             {/* Inventory Levels */}
             <ChartContainer title={t('Inventory Stock Levels')}>
@@ -252,7 +278,7 @@ export default function Analytics() {
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} />
                   <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} />
                   <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                  <Bar dataKey="stock" radius={[4, 4, 0, 0]} barSize={30}>
+                  <Bar dataKey="stock" radius={[4, 4, 0, 0]} barBarSize={30}>
                     {charts.inventoryStock.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.stock < 10 ? '#ef4444' : '#f59e0b'} />
                     ))}
@@ -262,7 +288,8 @@ export default function Analytics() {
             </ChartContainer>
 
             {/* Sales by Customers */}
-            <ChartContainer title={t('Sales by Customers')}>
+            {isOwnerOrAccountant && (
+              <ChartContainer title={t('Sales by Customers')}>
               <div className="space-y-6">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={charts.salesByCustomer} margin={{ top: 20 }}>
@@ -300,7 +327,8 @@ export default function Analytics() {
                   </table>
                 </div>
               </div>
-            </ChartContainer>
+              </ChartContainer>
+            )}
           </div>
         </>
       )}

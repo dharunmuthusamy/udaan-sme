@@ -5,8 +5,25 @@ const COLLECTION_NAME = 'products';
 
 export const productService = {
   create: async (businessId, data) => {
+    // Basic validation
+    if (!data.name || !data.category) {
+      throw new Error('Product name and category are required.');
+    }
+
+    const price = parseFloat(data.price);
+    if (isNaN(price) || price <= 0) {
+      throw new Error('Invalid amount. Price must be greater than ₹0.');
+    }
+
+    const stockQuantity = Number(data.stockQuantity);
+    if (isNaN(stockQuantity) || !Number.isInteger(stockQuantity) || stockQuantity <= 0) {
+      throw new Error('Invalid quantity. Please enter a value greater than 0.');
+    }
+
     const finalData = {
       ...data,
+      price,
+      stockQuantity,
       businessId,
       createdAt: serverTimestamp(),
     };
